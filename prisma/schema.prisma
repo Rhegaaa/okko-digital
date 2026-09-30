@@ -1,0 +1,403 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum ServiceType {
+  PRESENCE_LOCALE
+  SITE_WEB
+  AUTOMATISATION
+  SOLUTION_METIER
+  AUTRE
+}
+
+enum ClientStatus {
+  ACTIF
+  EN_PAUSE
+  ANCIEN
+}
+
+enum ProspectStatus {
+  NOUVEAU
+  A_CONTACTER
+  CONTACTE
+  RENDEZ_VOUS
+  DEVIS_ENVOYE
+  GAGNE
+  PERDU
+}
+
+enum ProjectStatus {
+  A_PREPARER
+  EN_COURS
+  EN_ATTENTE_CLIENT
+  A_VALIDER
+  TERMINE
+}
+
+enum TaskPriority {
+  NORMALE
+  IMPORTANTE
+  URGENTE
+}
+
+enum TaskStatus {
+  A_FAIRE
+  EN_COURS
+  TERMINE
+}
+
+enum QuoteStatus {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  EXPIRE
+}
+
+enum SubscriptionStatus {
+  ACTIF
+  PAIEMENT_EN_RETARD
+  ANNULE
+  TERMINE
+  INCOMPLET
+}
+
+enum NoteType {
+  INTERNE
+  APPEL
+  REUNION
+  EMAIL
+  AUTRE
+}
+
+enum ContactStatus {
+  NOUVEAU
+  TRAITE
+  CONVERTI
+  ARCHIVE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("admin")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Client {
+  id               String        @id @default(cuid())
+  company          String
+  contactName      String
+  email            String?
+  phone            String?
+  website          String?
+  address          String?
+  city             String?
+  services         ServiceType[] @default([])
+  status           ClientStatus  @default(ACTIF)
+  stripeCustomerId String?       @unique
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  projects       Project[]
+  tasks          Task[]
+  quotes         Quote[]
+  clientNotes    Note[]
+  subscriptions  Subscription[]
+  payments       Payment[]
+  documents      Document[]
+  events         CalendarEvent[]
+
+  @@index([status])
+  @@index([company])
+}
+
+model Prospect {
+  id             String         @id @default(cuid())
+  company        String
+  contactName    String
+  email          String?
+  phone          String?
+  source         String?
+  service        ServiceType    @default(AUTRE)
+  notes          String?
+  nextAction     String?
+  followUpDate   DateTime?
+  status         ProspectStatus @default(NOUVEAU)
+  estimatedValue Int?
+  position       Int            @default(0)
+  convertedClientId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  quotes Quote[]
+  events CalendarEvent[]
+
+  @@index([status])
+  @@index([followUpDate])
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service     ServiceType   @default(AUTRE)
+  status      ProjectStatus @default(A_PREPARER)
+  startDate   DateTime?
+  dueDate     DateTime?
+  description String?
+  notes       String?
+  budget      Int?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tasks  Task[]
+  events CalendarEvent[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  clientId    String?
+  client      Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  service     ServiceType?
+  description String?
+  priority    TaskPriority @default(NORMALE)
+  dueDate     DateTime?
+  status      TaskStatus   @default(A_FAIRE)
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([dueDate])
+  @@index([clientId])
+  @@index([projectId])
+}
+
+model Quote {
+  id         String      @id @default(cuid())
+  reference  String      @unique
+  clientId   String?
+  client     Client?     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  prospectId String?
+  prospect   Prospect?   @relation(fields: [prospectId], references: [id], onDelete: SetNull)
+  title      String
+  service    ServiceType @default(AUTRE)
+  amount     Int
+  recurring  Boolean     @default(false)
+  issuedAt   DateTime    @default(now())
+  validUntil DateTime?
+  status     QuoteStatus @default(BROUILLON)
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([status])
+  @@index([clientId])
+  @@index([prospectId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type      NoteType @default(INTERNE)
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+}
+
+model ContactSubmission {
+  id          String        @id @default(cuid())
+  projectType ServiceType   @default(AUTRE)
+  name        String
+  company     String?
+  email       String
+  phone       String?
+  message     String
+  status      ContactStatus @default(NOUVEAU)
+  prospectId  String?
+  createdAt   DateTime      @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  clientId             String?
+  client               Client?            @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  stripeCustomerId     String
+  stripeSubscriptionId String             @unique
+  stripePriceId        String?
+  plan                 String
+  planLabel            String?
+  amount               Int
+  currency             String             @default("eur")
+  interval             String             @default("month")
+  status               SubscriptionStatus @default(ACTIF)
+  stripeStatus         String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+  startedAt            DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  payments Payment[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  stripeInvoiceId   String        @unique
+  stripeCustomerId  String?
+  clientId          String?
+  client            Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  amount            Int
+  currency          String        @default("eur")
+  status            String
+  paidAt            DateTime?
+  invoiceUrl        String?
+  createdAt         DateTime      @default(now())
+
+  @@index([clientId])
+  @@index([status])
+  @@index([paidAt])
+}
+
+model Document {
+  id                 String   @id @default(cuid())
+  clientId           String
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name               String
+  category           String   @default("AUTRE")
+  cloud_storage_path String
+  isPublic           Boolean  @default(false)
+  contentType        String?
+  size               Int?
+  createdAt          DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model CalendarEvent {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime?
+  allDay      Boolean     @default(true)
+  kind        String      @default("RDV")
+  clientId    String?
+  client      Client?     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  prospectId  String?
+  prospect    Prospect?   @relation(fields: [prospectId], references: [id], onDelete: SetNull)
+  projectId   String?
+  project     Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+
+  @@index([startAt])
+}
+
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+}
+
+model Showcase {
+  id          String      @id @default(cuid())
+  title       String
+  clientName  String?
+  service     ServiceType @default(AUTRE)
+  summary     String?
+  description String?
+  imageUrl    String?
+  url         String?
+  year        String?
+  published   Boolean     @default(false)
+  position    Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([published, position])
+}
