@@ -4,6 +4,7 @@ import Google from 'next-auth/providers/google';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db';
+import { createHmac } from 'node:crypto';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -35,11 +36,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const email = String(credentials?.email ?? '').trim().toLowerCase();
         const password = String(credentials?.password ?? '');
-        if (!email || !password) return null;
+        if (!email || !password || password.length > 100 || email.length > 200) return null;
+        const key = createHmac('sha256', process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || '').update(email).digest('hex');
+        const window = new Date(Date.now() - 15 * 60_000);
+        const attempt = await prisma.authAttempt.upsert({ where: { key }, update: {}, create: { key } });
+        if (attempt.windowStarted < window) await prisma.authAttempt.update({ where: { key }, data: { failures: 0, windowStarted: new Date() } });
+        else if (attempt.failures >= 8) return null;
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user?.password) return null;
-        const ok = await bcrypt.compare(password, user.password);
-        if (!ok) return null;
+        const ok = user?.password ? await bcrypt.compare(password, user.password) : false;
+        if (!ok || !user || user.role !== 'admin') {
+          await prisma.authAttempt.update({ where: { key }, data: { failures: { increment: 1 } } });
+          return null;
+        }
+        await prisma.authAttempt.update({ where: { key }, data: { failures: 0 } });
         return { id: user.id, email: user.email, name: user.name ?? undefined, role: user.role };
       },
     }),
@@ -55,8 +64,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.warn('[auth] Connexion Google refusée : email absent ou non vérifié.');
         return false;
       }
-      const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-      if (!existing) {
+      const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
+      if (!existing || existing.role !== 'admin') {
         console.warn(`[auth] Connexion Google refusée : ${email} n'est pas un compte administrateur.`);
         return false;
       }

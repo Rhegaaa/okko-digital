@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { prisma } from '@/lib/db';
 
 export async function requireAdmin() {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id || session.user.role !== 'admin') return null;
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { role: true } });
+  if (user?.role !== 'admin') return null;
   return session;
 }
 

@@ -157,6 +157,7 @@ model Client {
   payments       Payment[]
   documents      Document[]
   events         CalendarEvent[]
+  gmbProfile     GmbProfile?
 
   @@index([status])
   @@index([company])
@@ -400,4 +401,42 @@ model Showcase {
   updatedAt   DateTime    @updatedAt
 
   @@index([published, position])
+}
+
+model GmbProfile {
+  id String @id @default(cuid())
+  clientId String @unique
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  mapsUrl String
+  manageUrl String?
+  reviewsUrl String?
+  photosUrl String?
+  accessConfirmed Boolean @default(false)
+  createdAt DateTime @default(now())
+  actions GmbAction[]
+}
+
+model GmbAction {
+  id String @id @default(cuid())
+  profileId String
+  profile GmbProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  kind String
+  title String
+  detail String?
+  quantity Int?
+  dueDate DateTime
+  cadenceDays Int?
+  status String @default("A_FAIRE")
+  source String @default("PLANIFIEE")
+  previousId String? @unique
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([status, dueDate])
+  @@index([profileId])
+}
+
+model AuthAttempt {
+  key String @id
+  failures Int @default(0)
+  windowStarted DateTime @default(now())
 }
