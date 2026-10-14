@@ -9,7 +9,7 @@ const match = html.match(/<body>\s*([\s\S]*?)\s*<script src="site.js"/);
 if (!match) throw new Error('Missing website markup');
 const markup = match[1].replaceAll('href="mentions-legales.html"', 'href="/mentions-legales"').replaceAll('src="assets/', 'src="/gmb-assets/');
 fs.writeFileSync(path.join(root, 'lib/gmb-markup.ts'), `export const gmbMarkup = ${JSON.stringify(markup)};\n`);
-fs.copyFileSync(path.join(site, 'styles.css'), path.join(root, 'app/gmb.css'));
+fs.writeFileSync(path.join(root, 'app/gmb.css'), fs.readFileSync(path.join(site, 'styles.css'), 'utf8').replaceAll('url("assets/', 'url("/gmb-assets/'));
 const interactionSource = fs.readFileSync(path.join(site, 'interactions.js'), 'utf8');
 fs.writeFileSync(path.join(site, 'site.js'), interactionSource.replace('export function initializeGmb', 'function initializeGmb') + '\ninitializeGmb();\n');
 fs.copyFileSync(path.join(site, 'site.js'), path.join(root, 'public/gmb-site.js'));

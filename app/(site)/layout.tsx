@@ -13,7 +13,6 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         email: SITE.email,
         logo: `${SITE.url}/favicon.svg`,
         founder: { '@type': 'Person', name: 'Lorenzo Catenaccio', jobTitle: 'Fondateur' },
-        address: { '@type': 'PostalAddress', postalCode: '74520', addressLocality: 'Savigny', addressRegion: 'Haute-Savoie', addressCountry: 'FR' },
       },
       {
         '@type': 'ProfessionalService',
@@ -21,12 +20,10 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         name: 'OKKO Digital',
         url: SITE.url,
         email: SITE.email,
-        description: 'Agence indépendante spécialisée dans l’optimisation et la gestion de fiches Google en Haute-Savoie et dans le Genevois.',
+        description: 'Agence indépendante spécialisée dans l’optimisation et la gestion de fiches Google.',
         image: `${SITE.url}/gmb-assets/og.png`,
         parentOrganization: { '@id': `${SITE.url}/#organization` },
-        areaServed: [{ '@type': 'AdministrativeArea', name: 'Haute-Savoie' }, { '@type': 'Country', name: 'France' }],
         knowsAbout: ['Fiche Google Business Profile', 'Avis clients', 'Présence locale', 'Google Maps'],
-        address: { '@type': 'PostalAddress', postalCode: '74520', addressLocality: 'Savigny', addressRegion: 'Haute-Savoie', addressCountry: 'FR' },
       },
       {
         '@type': 'WebSite',

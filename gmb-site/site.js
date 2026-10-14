@@ -97,7 +97,7 @@ function initializeGmb(root = document) {
     const data = new FormData(form);
     const value = name => String(data.get(name) || '').trim();
     const subject = `Fiche Google — ${value('company')}`;
-    const body = `Bonjour OKKO,\n\nJe souhaite faire le point sur ma fiche Google.\n\nNom : ${value('name')}\nÉtablissement : ${value('company')}\nEmail : ${value('email')}\nVille ou fiche Google : ${value('profile')}\n\nMon besoin :\n${value('message') || 'À préciser ensemble.'}\n\nÀ bientôt,\n${value('name')}`;
+    const body = `Bonjour OKKO,\n\nJe souhaite faire le point sur ma fiche Google.\n\nNom : ${value('name')}\nÉtablissement : ${value('company')}\nEmail : ${value('email')}\nFiche Google : ${value('profile')}\n\nMon besoin :\n${value('message') || 'À préciser ensemble.'}\n\nÀ bientôt,\n${value('name')}`;
     const url = `mailto:contact@okko-digital.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
     if (feedback) {

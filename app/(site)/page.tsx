@@ -4,8 +4,8 @@ import { pageMeta } from '@/lib/seo';
 
 export const metadata = pageMeta({
   path: '/',
-  title: 'OKKO — Agence de fiches Google en Haute-Savoie',
-  description: 'OKKO optimise et gère votre fiche Google : informations, services, photos, avis clients et suivi. Agence indépendante en Haute-Savoie et dans le Genevois.',
+  title: 'OKKO — Agence de fiches Google',
+  description: 'OKKO optimise et gère votre fiche Google : informations, services, photos, avis clients et suivi. Agence indépendante.',
 });
 
 export default function HomePage() {

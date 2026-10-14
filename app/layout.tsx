@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: '%s — OKKO Digital',
   },
   description:
-    'OKKO optimise et gère les fiches Google des établissements locaux en Haute-Savoie et dans le Genevois.',
+    'OKKO optimise et gère les fiches Google des établissements.',
   applicationName: 'OKKO Digital',
   icons: { icon: '/favicon.svg', shortcut: '/favicon.svg' },
   openGraph: {

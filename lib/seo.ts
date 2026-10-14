@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { SITE } from '@/lib/constants';
 
-const OG_IMAGE = { url: '/gmb-assets/og.png', width: 1200, height: 630, alt: 'OKKO Digital — agence de fiches Google en Haute-Savoie' };
+const OG_IMAGE = { url: '/gmb-assets/og.png', width: 1200, height: 630, alt: 'OKKO Digital — agence de fiches Google' };
 
 export function pageMeta({ path, title, description, image, noindex }: { path: string; title: string; description: string; image?: string; noindex?: boolean }): Metadata {
   const url = `${SITE.url}${path}`;
