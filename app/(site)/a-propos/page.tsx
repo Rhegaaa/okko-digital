@@ -1,3 +1,12 @@
-import { permanentRedirect } from 'next/navigation';
+import Link from 'next/link';
+import { PageShell } from '@/components/site/page-shell';
+import { pageMeta } from '@/lib/seo';
 
-export default function Page() { permanentRedirect("/#agence"); }
+export const metadata = pageMeta({ path: '/a-propos', title: 'OKKO : une agence spécialisée dans les fiches Google', description: 'Découvrez l’approche OKKO : une agence indépendante dédiée aux fiches Google Business Profile, à leurs informations et à leurs avis clients.' });
+
+export default function AboutPage() {
+  return <PageShell crumbs={[{ label: 'L’agence', path: '/a-propos' }]}>
+    <section className="shell detail-hero"><div><p className="eyebrow">Une seule spécialité</p><h1>OKKO.<br />Le soin du détail.</h1><p className="detail-intro">Une agence indépendante consacrée aux fiches Google. Comprendre votre activité, soigner votre présence et vous expliquer ce qui a été fait.</p></div><figure className="detail-photo"><img src="/gmb-assets/cafe-barista.jpg" alt="Un professionnel prépare une boisson dans son établissement, photographie d’illustration" width={850} height={1062} /><figcaption>Photographie d’illustration.</figcaption></figure></section>
+    <div className="shell agency-body"><section><h2>Un sujet précis.<br />Toute notre attention.</h2><p>OKKO se spécialise dans Google Business Profile, anciennement Google My Business. Le point de départ est votre établissement : ses services, ses horaires, son accueil et les informations dont vos clients ont besoin.</p><p>Notre accompagnement porte sur la présentation de votre activité, la qualité des informations, les avis authentiques et la mise à jour de la fiche. Les supports NFC et QR code facilitent un geste ; ils complètent le travail de gestion.</p></section><section><h2>Un travail que vous<br />pouvez comprendre.</h2><p>Nous regardons votre fiche avant de proposer une intervention. Le diagnostic permet de distinguer les informations à corriger, les éléments à compléter et ce qui dépend de Google ou de votre activité.</p><p>Le devis précise le contenu, les conditions et le rythme de l’accompagnement. Les actions sont expliquées avec des mots simples. Les indicateurs disponibles servent au suivi ; un clic sur un bouton d’appel n’est pas automatiquement un appel abouti ou une vente.</p></section><section><h2>Votre fiche reste<br />votre fiche.</h2><p>Vous conservez la propriété et les accès. OKKO intervient avec un accès de gestion adapté. La fiche Google est gratuite ; vous rémunérez les prestations de diagnostic, d’optimisation et de suivi convenues ensemble.</p><p>OKKO n’est pas affiliée à Google et ne garantit ni classement, ni volume d’avis, ni nombre de clients. Les exemples présents sur le site sont des démonstrations : ils ne constituent pas des résultats clients.</p><Link className="action-link" href="/services">Voir les prestations <span aria-hidden="true">↗</span></Link></section></div>
+  </PageShell>;
+}

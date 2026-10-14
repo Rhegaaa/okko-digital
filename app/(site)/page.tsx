@@ -4,8 +4,8 @@ import { pageMeta } from '@/lib/seo';
 
 export const metadata = pageMeta({
   path: '/',
-  title: 'OKKO — Agence de fiches Google',
-  description: 'OKKO optimise et gère votre fiche Google : informations, services, photos, avis clients et suivi. Agence indépendante.',
+  title: 'Agence Google My Business : fiches Google & avis | OKKO',
+  description: 'Agence spécialisée Google Business Profile : audit, optimisation et gestion de fiche Google, réponses aux avis et supports NFC. Découvrez l’accompagnement OKKO.',
 });
 
 export default function HomePage() {
