@@ -2,7 +2,7 @@
 const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
-  typescript: { ignoreBuildErrors: true },
+  typescript: { ignoreBuildErrors: false },
   images: { unoptimized: true },
 };
 

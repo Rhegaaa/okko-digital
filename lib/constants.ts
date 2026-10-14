@@ -1,6 +1,6 @@
 export const SITE = {
   name: 'OKKO Digital',
-  tagline: 'Le digital au service de votre entreprise.',
+  tagline: 'Votre fiche Google, entre de bonnes mains.',
   url: 'https://okko-digital.fr',
   email: 'contact@okko-digital.fr',
   city: 'Savigny (74520), France',

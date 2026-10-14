@@ -1,5 +1,4 @@
-import { SiteHeader } from '@/components/site/header';
-import { SiteFooter } from '@/components/site/footer';
+import '../gmb.css';
 import { SITE } from '@/lib/constants';
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -22,11 +21,11 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         name: 'OKKO Digital',
         url: SITE.url,
         email: SITE.email,
-        description: 'Agence digitale pour TPE, PME, artisans et commerçants : présence locale, sites web, automatisation & IA, solutions métier.',
-        image: `${SITE.url}/og-image.png`,
+        description: 'Agence indépendante spécialisée dans l’optimisation et la gestion de fiches Google en Haute-Savoie et dans le Genevois.',
+        image: `${SITE.url}/gmb-assets/og.png`,
         parentOrganization: { '@id': `${SITE.url}/#organization` },
         areaServed: [{ '@type': 'AdministrativeArea', name: 'Haute-Savoie' }, { '@type': 'Country', name: 'France' }],
-        knowsAbout: ['Fiche Google Business Profile', 'Création de sites web', 'Automatisation', 'Logiciels métier sur mesure'],
+        knowsAbout: ['Fiche Google Business Profile', 'Avis clients', 'Présence locale', 'Google Maps'],
         address: { '@type': 'PostalAddress', postalCode: '74520', addressLocality: 'Savigny', addressRegion: 'Haute-Savoie', addressCountry: 'FR' },
       },
       {
@@ -44,9 +43,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[#111111] focus:px-4 focus:py-2 focus:text-white">
         Aller au contenu
       </a>
-      <SiteHeader />
-      <main id="contenu">{children}</main>
-      <SiteFooter />
+      <div id="contenu">{children}</div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     </>
   );
