@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const page = getSeoPage(`/guides/${slug}`);
   if (!page || page.kind !== 'guide') return {};
-  return pageMeta({ path: page.path, title: page.title, description: page.description });
+  return pageMeta({ path: page.path, title: page.title, description: page.description, article: true });
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
