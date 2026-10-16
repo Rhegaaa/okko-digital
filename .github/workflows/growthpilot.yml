@@ -1,0 +1,28 @@
+name: GrowthPilot daily
+on:
+  schedule:
+    - cron: '0 6 * * *'
+      timezone: Europe/Paris
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/growthpilot.yml', 'scripts/growthpilot-runner.py']
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: growthpilot-okko
+  cancel-in-progress: false
+jobs:
+  daily:
+    if: github.repository == 'Rhegaaa/okko-digital' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Research, write, check, publish and verify
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python3 scripts/growthpilot-runner.py

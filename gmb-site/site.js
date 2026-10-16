@@ -91,23 +91,31 @@ function initializeGmb(root = document) {
   }
   const form = root.querySelector('#diagnostic-form');
   const feedback = root.querySelector('#form-feedback');
-  listen(form, 'submit', event => {
-    event.preventDefault();
-    if (!form.reportValidity()) return;
-    const data = new FormData(form);
-    const value = name => String(data.get(name) || '').trim();
-    const subject = `Fiche Google — ${value('company')}`;
-    const body = `Bonjour OKKO,\n\nJe souhaite faire le point sur ma fiche Google.\n\nNom : ${value('name')}\nÉtablissement : ${value('company')}\nEmail : ${value('email')}\nFiche Google : ${value('profile')}\n\nMon besoin :\n${value('message') || 'À préciser ensemble.'}\n\nÀ bientôt,\n${value('name')}`;
-    const url = `mailto:contact@okko-digital.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = url;
-    if (feedback) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.textContent = 'ouvrez l’email ici';
-      link.style.textDecoration = 'underline';
-      feedback.replaceChildren('Votre demande est prête. Si votre messagerie ne s’ouvre pas, ', link, ' ou écrivez à contact@okko-digital.fr. Aucun message n’a encore été envoyé.');
-    }
-  });
+    const startedAt = Date.now();
+    const submissionKey = window.crypto.randomUUID();
+    listen(form, 'submit', async event => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const data = new FormData(form);
+      const button = form.querySelector('button[type="submit"]');
+      if (button) button.disabled = true;
+      if (feedback) feedback.textContent = 'Envoi de votre demande…';
+      try {
+        const response = await fetch('/api/contact', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...Object.fromEntries(data.entries()),submissionKey,startedAt,sourcePath:window.location.pathname})});
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Votre demande n’a pas pu être enregistrée.');
+        form.reset();
+        if (feedback) feedback.textContent = 'Votre demande a bien été enregistrée. OKKO reviendra vers vous par email.';
+      } catch (error) {
+        if (feedback) feedback.textContent = (error.message || 'Envoi impossible.') + ' Vous pouvez aussi écrire à contact@okko-digital.fr.';
+      } finally { if (button) button.disabled = false; }
+    });
+    const track = event => {
+      const link = event.target.closest && event.target.closest('a');
+      if (!link || !link.matches('a[href="/contact"],a[href="#contact"],a[data-growth-cta]')) return;
+      fetch('/api/growthpilot/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'CTA',path:window.location.pathname}),keepalive:true}).catch(()=>{});
+    };
+    listen(document, 'click', track);
   return () => { for (const cleanup of cleanups.reverse()) cleanup(); };
 }
 

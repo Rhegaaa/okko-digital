@@ -1,0 +1,26 @@
+export const SEEDS = [
+  ['confier-gestion-fiche-google','confier la gestion de sa fiche Google','gestion','Préparer les accès et les responsabilités avant de déléguer','/gestion-fiche-google'],
+  ['photos-fiche-google-commercant','photos fiche Google commerce','photos','Choisir des photos réelles, préparer les fichiers et suivre les ajouts','/optimisation-fiche-google'],
+  ['horaires-exceptionnels-google','horaires exceptionnels fiche Google','informations','Préparer les fermetures et vérifier leur affichage','/gestion-fiche-google'],
+  ['avis-negatif-reclamation','répondre avis négatif réclamation','avis','Organiser la validation interne et protéger les données personnelles','/gestion-avis-google'],
+  ['acces-gestionnaire-agence','ajouter agence gestionnaire fiche Google','gestion','Inviter une agence tout en conservant la propriété','/gestion-fiche-google'],
+  ['collecte-avis-qr-code','QR code avis Google établissement','collecte','Préparer une demande neutre avec un support accessible à tous','/carte-nfc-avis-google'],
+  ['audit-avant-delegation','audit fiche Google avant délégation','audit','Vérifier les accès, informations et contenus avant la prestation','/audit-fiche-google'],
+  ['photos-client-agence','envoyer photos agence fiche Google','photos','Organiser la transmission et l’autorisation des visuels','/gestion-fiche-google'],
+  ['proprietaire-ou-gestionnaire','propriétaire gestionnaire fiche Google','gestion','Comprendre les responsabilités de chacun sans partager ses identifiants','/gestion-fiche-google'],
+  ['avis-sans-informations-personnelles','réponse avis Google confidentialité','avis','Répondre publiquement sans révéler les détails de la relation client','/gestion-avis-google'],
+  ['controle-mensuel-fiche','contrôle mensuel fiche Google','suivi','Construire une liste de contrôles fondée sur les changements réels','/gestion-fiche-google'],
+  ['bilan-prestation-google','bilan gestion fiche Google','suivi','Distinguer les tâches effectuées, les interactions et les ventes réellement attribuées','/gestion-fiche-google'],
+  ['horaires-vacances-commerce','horaires vacances fiche Google commerce','informations','Informer le gestionnaire et vérifier les dates de fermeture','/gestion-fiche-google'],
+  ['lien-avis-introuvable','retrouver lien avis Google établissement','collecte','Vérifier que le lien mène au bon établissement avant diffusion','/carte-nfc-avis-google'],
+  ['description-activite-google','description activité fiche Google','optimisation','Décrire une activité réelle et éviter les promesses de classement','/optimisation-fiche-google'],
+  ['gestion-fiche-restaurant','gestion fiche Google restaurant','métiers','Organiser les horaires, photos de plats réels et réponses aux retours clients','/gestion-fiche-google'],
+  ['gestion-fiche-institut','gestion fiche Google institut beauté','métiers','Préparer les photos autorisées et protéger les informations clients dans les réponses','/gestion-fiche-google'],
+  ['gestion-fiche-garage','gestion fiche Google garage','métiers','Maintenir les informations de l’atelier et traiter les réclamations avec validation','/gestion-fiche-google'],
+  ['gestion-fiche-commerce','gestion fiche Google commerce indépendant','métiers','Coordonner les nouveautés réelles, photos et horaires saisonniers','/gestion-fiche-google'],
+  ['reprendre-avis-historiques','anciens avis Google sans réponse','avis','Prioriser une reprise réaliste sans présenter un ancien avis comme récent','/gestion-avis-google'],
+] as const;
+export const LINK_SEEDS=[
+  {url:'https://www.francenum.gouv.fr/activateurs',label:'France Num — Activateurs',rationale:'Vérifier les critères d’éligibilité et l’existence d’une procédure de candidature.',proposal:'Présenter OKKO comme agence de gestion de fiches Google, avec prestations réelles et identité vérifiée. Vérifier l’éligibilité avant toute candidature.'},
+  {url:'https://www.cci.fr/',label:'CCI — ressources et partenariats',rationale:'Explorer les ressources destinées aux entreprises et les modalités locales de contribution.',proposal:'Proposer, si le site accepte les contributions, une ressource pratique sur la préparation des horaires et des accès Google. Aucun envoi automatique.'},
+];

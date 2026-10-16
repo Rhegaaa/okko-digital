@@ -1,0 +1,15 @@
+import Link from 'next/link';
+import { PageShell } from './page-shell';
+import { articleSchema,SOURCES } from '@/lib/growthpilot/content';
+import { SITE } from '@/lib/constants';
+export function GrowthArticleView({row}:{row:{slug:string;body:unknown;publishedAt:Date|null;updatedAt:Date;opportunity:{commercialPath:string}}}){
+  const a=articleSchema.parse(row.body);const path=`/guides/${row.slug}`;
+  const schema={'@context':'https://schema.org','@type':'Article',headline:a.title,description:a.description,mainEntityOfPage:SITE.url+path,datePublished:row.publishedAt?.toISOString(),dateModified:row.updatedAt.toISOString(),inLanguage:'fr-FR',author:{'@type':'Organization',name:'OKKO Digital',url:SITE.url},publisher:{'@id':`${SITE.url}/#organization`},citation:SOURCES.filter(s=>a.sections.some(section=>section.sourceIds.includes(s.id))).map(s=>s.url)};
+  const date=(v:Date)=>new Intl.DateTimeFormat('fr-FR',{dateStyle:'long',timeZone:'Europe/Paris'}).format(v);
+  return <PageShell crumbs={[{label:'Guides',path:'/guides'},{label:a.title,path}]}>
+    <section className="shell detail-hero"><div><p className="eyebrow">Le guide OKKO</p><h1>{a.title}</h1><p className="detail-intro">{a.intro}</p><p>Publié le {date(row.publishedAt||row.updatedAt)} · Mis à jour le {date(row.updatedAt)}</p><Link href="/contact" className="action-link" data-growth-cta>Demander un diagnostic de ma fiche ↗</Link></div></section>
+    <div className="shell detail-content"><nav className="article-toc" aria-label="Sommaire"><p className="eyebrow">Dans ce guide</p>{a.sections.map((s,i)=><a key={s.heading} href={`#partie-${i+1}`}>{s.heading}</a>)}</nav><div className="article-body">{a.sections.map((s,i)=><section key={s.heading} id={`partie-${i+1}`}><h2>{s.heading}</h2>{s.paragraphs.map((p,j)=><p key={j}>{p}</p>)}{!!s.items.length&&<ul>{s.items.map(item=><li key={item}>{item}</li>)}</ul>}<p className="source-note">Sources : {s.sourceIds.map(id=>SOURCES.find(source=>source.id===id)).filter(Boolean).map((source,j)=><span key={source!.id}>{j?' · ':''}<a href={source!.url}>{source!.title}</a></span>)}</p></section>)}<section><h2>Votre liste de vérification</h2><ul>{a.checklist.map(item=><li key={item}>{item}</li>)}</ul></section><section><h2>Vous souhaitez déléguer ces vérifications ?</h2><p>OKKO accompagne les établissements dans l’optimisation et le suivi de leur fiche Google. Le périmètre se définit à partir de votre situation réelle.</p><Link href={row.opportunity.commercialPath} className="action-link">Découvrir l’accompagnement ↗</Link><p><Link href="/contact" className="action-link" data-growth-cta>Parlons de votre fiche ↗</Link></p></section></div></div>
+    {!!a.faq.length&&<section className="section detail-faq"><div className="shell faq"><h2>Questions fréquentes</h2>{a.faq.map(f=><details key={f.question}><summary>{f.question}</summary><p>{f.answer}</p></details>)}</div></section>}
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema).replace(/</g,'\\u003c')}} />
+  </PageShell>;
+}

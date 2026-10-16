@@ -10,6 +10,7 @@ import { CommandPalette } from '@/components/admin/command-palette';
 import { cn } from '@/lib/utils';
 
 const NAV = [
+  { label: 'GrowthPilot', href: '/control/growthpilot', icon: FolderKanban },
   { label: 'Actions du jour', href: '/control', icon: LayoutDashboard },
   { label: 'Établissements', href: '/control#clients-title', icon: Users },
   { label: 'Prospects', href: '/control/prospects', icon: UserPlus },
