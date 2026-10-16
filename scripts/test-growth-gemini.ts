@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { encryptCredential,decryptCredential } from '../lib/growthpilot/credential';
-import { inferGemini,parseGeminiResponse,inferenceHash,GEMINI_MODEL } from '../lib/growthpilot/gemini';
+import { inferGemini,parseGeminiResponse,parseGeminiReviewResponse,inferenceHash,GEMINI_MODEL,GEMINI_REVIEW_MODEL } from '../lib/growthpilot/gemini';
 import { GROWTH_RELEASE } from '../lib/growthpilot/content';
 import { prisma } from '../lib/db';
 
@@ -11,6 +11,8 @@ async function main(){
   const response={model:GEMINI_MODEL,status:'completed',steps:[{type:'model_output',content:[{type:'text',text:'{"ok":true}'}]}],usage:{total_input_tokens:100,total_output_tokens:30,total_thought_tokens:10}};
   assert.deepEqual(parseGeminiResponse(response),{content:{ok:true},usage:{prompt_tokens:100,completion_tokens:40}});
   assert.throws(()=>parseGeminiResponse({...response,status:'requires_action'}));assert.throws(()=>parseGeminiResponse({...response,model:'unexpected-model'}));
+  const reviewFixture={modelVersion:GEMINI_REVIEW_MODEL,candidates:[{finishReason:'STOP',content:{parts:[{text:'{"approved":true,"unsupportedClaims":[],"reason":"Supported by supplied facts."}'}]}}],usageMetadata:{promptTokenCount:90,candidatesTokenCount:20}};
+  assert.equal((parseGeminiReviewResponse(reviewFixture).content as any).approved,true);assert.throws(()=>parseGeminiReviewResponse({...reviewFixture,candidates:[{finishReason:'MAX_TOKENS'}]}));
   // In-memory replacements only: no database mutation and no actual API call.
   assert.equal(inferenceHash('writer','s',JSON.stringify({observedSearchResults:{measuredAt:'old',results:[]}})),inferenceHash('writer','s',JSON.stringify({observedSearchResults:{measuredAt:'new',results:[]}})));
   const db=prisma as any;const saved={run:db.growthRun.findUnique,state:db.growthState.findUnique,credential:db.growthCredential.findUnique,find:db.growthSnapshot.findUnique,first:db.growthSnapshot.findFirst,create:db.growthSnapshot.create,update:db.growthSnapshot.update,fetch:globalThis.fetch};
@@ -23,7 +25,7 @@ async function main(){
     db.growthSnapshot.findFirst=async({where}:any)=>[...snapshots.values()].find(s=>s.payload.status==='COMPLETE'&&s.payload.promptHash===where.AND[0].payload.equals)||null;
     db.growthSnapshot.create=async({data}:any)=>{assert(!snapshots.has(data.id));snapshots.set(data.id,data);return data;};
     db.growthSnapshot.update=async({where,data}:any)=>{snapshots.set(where.id,{...snapshots.get(where.id),...data});return snapshots.get(where.id);};
-    globalThis.fetch=async(url,options)=>{requests++;assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/interactions');assert.equal((options?.headers as any)['x-goog-api-key'],secret);const body=JSON.parse(options?.body as string);assert.equal(body.model,GEMINI_MODEL);assert.equal(body.store,false);assert(!('tools' in body));return new Response(JSON.stringify(response),{status:sequence.shift()??status});};
+    globalThis.fetch=async(url,options)=>{requests++;const review=String(url).endsWith('/models/'+GEMINI_REVIEW_MODEL+':generateContent');assert.equal(url,review?'https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_REVIEW_MODEL+':generateContent':'https://generativelanguage.googleapis.com/v1beta/interactions');assert.equal((options?.headers as any)['x-goog-api-key'],secret);const body=JSON.parse(options?.body as string);if(review)assert.equal(body.generationConfig.responseMimeType,'application/json');else{assert.equal(body.model,GEMINI_MODEL);assert.equal(body.store,false);}assert(!('tools' in body));return new Response(JSON.stringify(review?reviewFixture:response),{status:sequence.shift()??status});};
     const runId='TEST:'+GROWTH_RELEASE;
     const first=await inferGemini(runId,'writer','system fixture','public brief fixture');assert.equal(requests,1);
     assert.deepEqual(await inferGemini(runId,'writer','system fixture','public brief fixture'),first);assert.equal(requests,1,'Cached phase must not call Gemini twice.');
@@ -34,6 +36,7 @@ async function main(){
     await inferGemini(runId,'repair','system fixture','public brief fixture');assert.equal(requests,4,'Only a confirmed transient 503 may trigger one bounded retry.');
     attempts=2;const reused=await inferGemini(runId,'writer','system fixture','public brief fixture');assert.equal(requests,4);assert.deepEqual(reused,{content:{ok:true},usage:{prompt_tokens:0,completion_tokens:0}});
     await assert.rejects(()=>inferGemini(runId,'writer','system fixture','different public brief fixture'),/autre brief/);assert.equal(requests,4);
+    const reviewed=await inferGemini(runId,'reviewRepair','system fixture','public brief fixture');assert.equal((reviewed as any).content.approved,true);assert.equal(requests,5);
   }finally{
     db.growthRun.findUnique=saved.run;db.growthState.findUnique=saved.state;db.growthCredential.findUnique=saved.credential;db.growthSnapshot.findUnique=saved.find;db.growthSnapshot.findFirst=saved.first;db.growthSnapshot.create=saved.create;db.growthSnapshot.update=saved.update;globalThis.fetch=saved.fetch;
   }
