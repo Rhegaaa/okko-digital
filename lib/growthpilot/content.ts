@@ -26,6 +26,7 @@ export function quality(raw:unknown, existing:{title:string;text:string}[], avai
   const parsed=articleSchema.safeParse(raw); if(!parsed.success)return {ok:false,issues:parsed.error.issues.map(i=>`${i.path.join('.')}: ${i.message}`),words:0};
   const a=parsed.data,text=plain(a),words=text.split(/\s+/).length;const issues:string[]=[];
   if(words<600||words>1800)issues.push('Longueur hors de la plage de lecture utile (600 à 1800 mots).');
+  if(/(?:^|\s)(?:pour|un|une|de|du|des|le|la|les|et|ou|avec|votre|vos|son|ses|sa|notre|nos|à|au|aux)\s*[.!?…]?\s*$/i.test(a.description))issues.push('La description SEO se termine au milieu d’une phrase : la réécrire en entier.');
   if(new Set(a.sections.map(s=>normalize(s.heading))).size!==a.sections.length)issues.push('Intertitres dupliqués.');
   if(a.sections.some(s=>s.sourceIds.some(id=>!availableIds.includes(id))))issues.push('Source absente ou non vérifiée.');
   if(new Set(a.sections.flatMap(s=>s.sourceIds)).size<2)issues.push('Au moins deux sources vérifiées sont nécessaires.');
