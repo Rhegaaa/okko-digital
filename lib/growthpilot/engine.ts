@@ -31,7 +31,7 @@ export async function startRun(owner:string,date=new Date()){
   await logRun(id,`${verified.length} sources officielles accessibles. Concurrence et volumes inconnus sans mesure de recherche.`);
   const backlinks=await prisma.growthBacklink.findMany({take:5,orderBy:{checkedAt:'asc'}});
   const serp=await prisma.growthSnapshot.findUnique({where:{id:'serp'}});
-  return {status:'READY',id,opportunity,sources:verified,existingTitles:(await existingTexts()).map(p=>p.title),serp:serp?.payload,backlinks,resumeArticle:resume?.status==='VERIFYING'?resume.id:null,modelRequired:!!opportunity&&verified.length>=2};
+  return {status:'READY',id,opportunity,sources:verified,existingTitles:(await existingTexts()).map(p=>p.title),serp:serp?.payload,backlinks,resumeArticle:resume?.status==='VERIFYING'?resume.id:null,modelRequired:!!opportunity&&verified.length>=2,blockedReason:opportunity&&verified.length<2?'Sources officielles insuffisantes : aucune rédaction autorisée.':null};
 }
 export async function assertLease(owner:string){const state=await prisma.growthState.findUnique({where:{id:'okko'}});if(!state?.enabled||state.leaseOwner!==owner||!state.leaseUntil||state.leaseUntil<new Date())throw Error('Automatisation arrêtée ou session expirée.');}
 export async function saveGenerated(owner:string,id:string,opportunityId:string,raw:unknown,critic:unknown,usage:{input:number;output:number}){

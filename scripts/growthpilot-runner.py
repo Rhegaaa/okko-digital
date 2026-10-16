@@ -56,6 +56,7 @@ def run():
     run_id=job['id'];proc=None
     try:
         for link in job['backlinks']:api('backlink',id=link['id'])
+        if job.get('blockedReason'):raise RuntimeError(job['blockedReason'])
         if job.get('resumeArticle'):api('verify',id=job['resumeArticle'])
         if job.get('modelRequired'):
             with tempfile.TemporaryDirectory(prefix='growthpilot-') as d:
