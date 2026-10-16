@@ -6,7 +6,7 @@ Source : `work/okko-repository`, Next.js 16 App Router, Prisma 6 / Postgres Neon
 
 Les treize pages publiques initiales répondent, ont un titre, une description, un H1 et un canonical. Robots autorise les pages publiques et exclut control et api. Le sitemap comporte les treize URL ; les guides automatiques publiés y sont ajoutés dynamiquement. L'espace privé est noindex. Les données structurées existantes ne présentent aucun faux avis ni résultat client. Les dates des guides automatiques sont celles effectivement enregistrées. Le site conserve sa palette, ses photos, sa police et sa navigation.
 
-Le formulaire préparait un mailto sans enregistrer la demande. Il enregistre désormais la demande dans ContactSubmission et Prospect, avec une notification privée et un compteur agrégé. Honeypot, validation, délai minimal, idempotence et limitation de fréquence sont appliqués. Aucun email ni campagne n'est envoyé par ce nouveau parcours. Les mentions de confidentialité sont adaptées. Les clics CTA sont des événements sans cookie, pas des visiteurs uniques ou des ventes attribuées.
+Le formulaire préparait un mailto sans enregistrer la demande. Il enregistre désormais la demande dans ContactSubmission et Prospect, avec une notification privée et un compteur agrégé. Honeypot, validation, idempotence et limitation de fréquence sont appliqués. Aucun email ni campagne n'est envoyé par ce nouveau parcours. Les mentions de confidentialité sont adaptées. Les clics CTA sont des événements sans cookie, pas des visiteurs uniques ou des ventes attribuées.
 
 ## Architecture
 

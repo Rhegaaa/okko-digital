@@ -9,7 +9,7 @@ export async function POST(req:Request){
   if(Number(req.headers.get('content-length')||0)>12000)return NextResponse.json({error:'Demande trop volumineuse.'},{status:413});
   const body=await req.json().catch(()=>null);if(body?.website_check)return NextResponse.json({ok:true});const input=schema.safeParse(body);
   if(!input.success)return NextResponse.json({error:'Vérifiez votre nom, votre établissement, votre email et le lien de votre fiche.'},{status:400});
-  const v=input.data;if(Date.now()-v.startedAt<1500||Date.now()-v.startedAt>86400000)return NextResponse.json({error:'Veuillez patienter un instant ou recharger le formulaire.'},{status:400});
+  const v=input.data;
   if(!(await limitPublic(req,'contact',5)))return NextResponse.json({error:'Trop de demandes. Réessayez plus tard ou contactez-nous par email.'},{status:429});
   const key='lead:'+v.submissionKey;const previous=await prisma.growthSnapshot.findUnique({where:{id:key}});if(previous)return NextResponse.json({ok:true});
   try{await prisma.$transaction(async tx=>{
