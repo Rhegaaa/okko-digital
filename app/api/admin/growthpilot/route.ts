@@ -13,7 +13,12 @@ const schema=z.discriminatedUnion('op',[
 ]);
 export async function POST(req:Request){
   if(!(await requireAdmin()))return unauthorized();const input=schema.safeParse(await readJson(req));if(!input.success)return badRequest('Action invalide.');await ensureGrowth();const v=input.data;
-  if(v.op==='toggle'){await prisma.growthState.update({where:{id:'okko'},data:{enabled:v.enabled,...(!v.enabled?{leaseOwner:null,leaseUntil:null}:{})}});return NextResponse.json({ok:true});}
+  if(v.op==='toggle'){
+    await prisma.$transaction(async tx=>{
+      await tx.growthState.update({where:{id:'okko'},data:{enabled:v.enabled,...(!v.enabled?{leaseOwner:null,leaseUntil:null}:{})}});
+      if(!v.enabled)for(const run of await tx.growthRun.findMany({where:{status:'RUNNING'}}))await tx.growthRun.update({where:{id:run.id},data:{status:'PAUSED',finishedAt:new Date(),logs:[...(Array.isArray(run.logs)?run.logs:[]),{at:new Date().toISOString(),message:'Arrêt demandé depuis le dashboard : publication bloquée et cycle interrompu.'}]}});
+    });return NextResponse.json({ok:true});
+  }
   if(v.op==='backlink'){try{publicUrl(v.url);}catch{return badRequest('Lien public HTTPS requis.');}await prisma.growthBacklink.upsert({where:{url:v.url},update:{label:v.label,rationale:v.rationale},create:{url:v.url,label:v.label,rationale:v.rationale,proposal:'Préparer une proposition pertinente après lecture de la ligne éditoriale et de la procédure du site. Aucun envoi automatique.'}});return NextResponse.json({ok:true});}
   if(v.op==='retry'){await prisma.growthOpportunity.update({where:{id:v.id},data:{status:'NEW'}});return NextResponse.json({ok:true});}
   const row=await prisma.growthArticle.findUnique({where:{id:v.id},include:{revisions:{orderBy:{createdAt:'desc'},take:1}}});if(!row)return badRequest('Article introuvable.');
