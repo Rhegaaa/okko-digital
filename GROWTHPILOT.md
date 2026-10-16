@@ -1,94 +1,68 @@
-# GrowthPilot — fonctionnement et audit
+# GrowthPilot — réception et fonctionnement
 
-## Audit du 16 octobre 2026
+## État vérifié le 16 octobre 2026
 
-Source : `work/okko-repository`, Next.js 16 App Router, Prisma 6 / Postgres Neon, Auth.js, dépôt public Rhegaaa/okko-digital. L'application publiée utilise la branche `refonte-agence-gmb-v2`. Le domaine principal est servi par Vercel. La branche par défaut GitHub est `main` ; elle contient encore une ancienne version du site et ne doit pas être redéployée. `vercel.json` désactive le déploiement automatique de main. Le workflow seul et son worker sont également installés sur main pour permettre les événements planifiés.
+Le cycle cloud a terminé une rédaction reprise depuis son résultat enregistré, sa relecture indépendante et ses contrôles. Le premier guide de 713 mots sur les horaires exceptionnels a ensuite été relu par Codex, publié et vérifié en HTTP 200. Le moteur courant est calibré ; les prochains guides peuvent être publiés automatiquement si leurs contrôles passent. Le guide a réellement été retiré (HTTP 404 et suppression du sitemap), puis restauré (HTTP 200 et retour dans le sitemap). Les autres générations refusées restent privées avec leurs motifs.
 
-Les treize pages publiques initiales répondent, ont un titre, une description, un H1 et un canonical. Robots autorise les pages publiques et exclut control et api. Le sitemap comporte les treize URL ; les guides automatiques publiés y sont ajoutés dynamiquement. L'espace privé est noindex. Les données structurées existantes ne présentent aucun faux avis ni résultat client. Les dates des guides automatiques sont celles effectivement enregistrées. Le site conserve sa palette, ses photos, sa police et sa navigation.
+Guide : https://okko-digital.fr/guides/horaires-exceptionnels-fiche-google-guide-pratique
 
-Le formulaire préparait un mailto sans enregistrer la demande. Il enregistre désormais la demande dans ContactSubmission et Prospect, avec une notification privée et un compteur agrégé. Honeypot, validation, idempotence et limitation de fréquence sont appliqués. Aucun email ni campagne n'est envoyé par ce nouveau parcours. Les mentions de confidentialité sont adaptées. Les clics CTA sont des événements sans cookie, pas des visiteurs uniques ou des ventes attribuées.
+Les tests du bouton d'arrêt ont confirmé la suspension d'un cycle simulé identifié et nettoyé, puis le statut PAUSED d'un vrai lancement GitHub. La reprise a été enregistrée. L'audit public porte sur quatorze pages : HTTP, métadonnées, canonical, H1, données structurées, sitemap, robots, exclusions privées et vraie 404. Aucun résultat commercial ou classement n'est déduit de ces tests.
 
-## Architecture
+## Architecture et droits
 
-GitHub Actions → jeton OIDC éphémère → API worker limitée à GrowthPilot → tables Growth* → routes publiques dynamiques du site. Le worker ne reçoit ni le mot de passe Postgres, ni le secret Auth.js, ni un droit d'écriture Git. Le backend exige le dépôt, l'identifiant numérique, le workflow, la branche et l'audience exacts. Aucun token n'est écrit dans les fichiers ou journaux.
+Le site utilise Next.js 16 App Router, Prisma 6, Neon Postgres Free et Auth.js, sur Vercel. Son identité visuelle est conservée. Le code applicatif publié provient de refonte-agence-gmb-v2. La branche main contient encore une ancienne version du site : son déploiement automatique est désactivé dans vercel.json. Seuls le worker et son workflow y sont synchronisés pour la planification.
 
-Le modèle Qwen3.5-9B, quantification GGUF publiée par bartowski sous licence Apache-2.0 s'exécute sur le runner standard Ubuntu gratuit du dépôt public avec llama.cpp. Fichiers et binaires sont épinglés par révision et SHA-256. Il n'y a aucune API d'inférence facturée. GitHub Models n'est pas utilisé : sa documentation annonce son arrêt au 30 juillet 2026. Aucun service payant ni palier supérieur n'est activé. Une indisponibilité du modèle ou un changement de quota fait échouer le cycle ; aucun repli payant.
+GitHub Actions appelle le serveur OKKO avec un jeton OIDC éphémère. Le backend exige le dépôt Rhegaaa/okko-digital, son identifiant numérique, main, l'audience et le chemin exact du workflow. Le worker ne reçoit ni la clé Gemini, ni le mot de passe Postgres, ni le secret Auth.js, ni de droit d'écriture Git. Le job séparé de sauvegarde dispose uniquement des droits nécessaires à son fichier chiffré.
 
-La génération utilise les paramètres de raisonnement recommandés par Qwen (température 1, top-p 0,95, top-k 20), avec un budget de raisonnement borné et une pénalité de présence de 1,5 contre les répétitions. Un plan distinct par thème répartit les sources pertinentes entre les sections. Les sorties sont contraintes par un schéma JSON, puis recontrôlées côté serveur ; ces contraintes ne remplacent pas la vérification factuelle. La reprise réécrit depuis le brief et ses erreurs, sans recopier le texte refusé. Le plafond quotidien de reprise est de cinq tentatives ; les cycles terminés sont idempotents.
+La rédaction utilise gemini-3.6-flash avec l'API Interactions. La relecture indépendante utilise gemini-3.5-flash-lite avec GenerateContent et ses champs JSON classiques. La version du moteur est gemini36-free-20261016. Les deux modèles ont répondu à des appels réels avec la clé du propriétaire ; le cycle cloud utilisant leur combinaison a réussi. Le premier guide reste privé après chaque changement de moteur jusqu'à une calibration. Le worker ne peut pas s'accorder cette approbation. Changer un modèle après calibration impose une nouvelle version de moteur et une nouvelle calibration.
 
-Le lancement quotidien est demandé à 06:00 Europe/Paris, avec la propriété timezone GitHub Actions. Le service peut retarder un lancement ; l'heure exacte n'est pas garantie. Les contenus visent lundi, mercredi et vendredi avec un maximum de trois publications par semaine. L'absence d'activité d'un dépôt public pendant soixante jours peut désactiver sa planification GitHub : le dernier signal est affiché. Une sauvegarde éditoriale réelle est versionnée chaque semaine dans ce dépôt, ce qui maintient une activité utile. Si un échec prolongé empêche cette activité et que GitHub désactive le workflow, il faut le réactiver depuis Actions.
+## Offre gratuite et secrets
 
-## Recherche, rédaction et contrôles
+Lorenzo a autorisé Google AI Studio en Free Tier uniquement et a confirmé dans le dashboard un projet sans compte de facturation associé. Aucune facturation, carte, recharge ou API de paiement n'est activée par GrowthPilot. Le backend ne vérifie pas le statut financier d'un projet Google : cette confirmation relève du propriétaire dans AI Studio. Un quota gratuit épuisé arrête la génération, sans repli payant.
 
-Les sujets éditoriaux initiaux sont des hypothèses orientées vers les services réels d'OKKO. Les sujets issus de Search Console sont identifiés comme données mesurées. Volumes de mots-clés et scores de faible concurrence ne sont jamais fabriqués. Le moteur tente une recherche Google publique limitée : s'il rencontre une page inaccessible, un challenge ou une réponse non exploitable, il le journalise sans le contourner. Les résultats observés sont des données, pas des instructions et pas des preuves de faible concurrence.
+La clé se saisit dans le dashboard privé. L'enregistrement vérifie l'accès au modèle par une lecture de métadonnées sans génération. La clé est chiffrée en AES-256-GCM avec contexte distinct et conservée dans GrowthCredential, une table exclue des exports et des sauvegardes éditoriales. Elle n'est jamais envoyée à GitHub ou au navigateur après enregistrement. Seuls les briefs et textes destinés au site sont transmis à Google, sans demandes de contact ou données des clients. Interactions reçoit store=false ; les conditions de traitement du Free Tier Google restent applicables.
 
-La rédaction utilise un corpus de faits approuvés et des sources Google officielles, recontrôlées avant publication. Les extraits de pages externes ne commandent aucune action et ne remplacent pas les faits autorisés. Un second passage du modèle révise les affirmations. Le serveur valide indépendamment la structure, les sources, les URL, les longueurs, les répétitions, les faux témoignages, les promesses et la similarité avec les pages existantes. Ces contrôles réduisent les risques ; ils ne prouvent pas mathématiquement la vérité de chaque phrase. Un refus garde un brouillon et le motif. Les titres, paragraphes et listes sont rendus comme texte React, jamais comme HTML fourni par le modèle.
+Les quotas gratuits de Google, Vercel, Neon et GitHub restent ceux des comptes. Un incident ou un changement de quota peut interrompre un cycle. Aucun abonnement payant ni repli facturé n'est ajouté.
 
-L'accès public HTTP, le titre, les données structurées et l'indexabilité sont vérifiés après publication. Une page non vérifiée est retirée (HELD). Une reprise de cycle revient sur l'article existant plutôt que d'en publier un second. L'arrêt d'urgence est contrôlé avant les actions et au sein de la transaction de publication. Les dates civiles et semaines utilisent Europe/Paris. Un bail évite les cycles concurrents et expire après une interruption. Les tentatives sont plafonnées.
+## Publication, reprise et contrôles
 
-## Search Console
+Le lancement quotidien est demandé à partir de 6 h Europe/Paris, avec gestion de l'heure d'été par la propriété timezone du workflow. GitHub peut retarder l'exécution. Les jours visés sont lundi, mercredi et vendredi, avec une publication par jour civil et trois par semaine au maximum, toutes versions confondues. Trois articles est un objectif conditionné à la qualité et à la disponibilité, jamais une garantie de classement ou de citation par un moteur IA.
 
-GSC Wizard est accessible depuis Codex, ce qui ne fournit pas automatiquement un accès serveur durable. Aucun credential du connecteur n'est extrait. La synchronisation cloud accepte, si le propriétaire le configure, `GROWTH_GSC_CREDENTIALS` contenant un compte de service Google autorisé sur la propriété. Le périmètre est lecture seule ; les données sont filtrées pour le domaine principal et excluent capbusiness. Sans cette variable, le dashboard et les journaux indiquent la connexion cloud manquante, sans chiffres inventés. Le moteur fonctionne avec ses pistes éditoriales.
+Les sources Google officielles nécessaires au plan sont réellement téléchargées ; une source manquante interrompt la génération. Les sources citées sont encore contrôlées lors de l'enregistrement et de la calibration. Les textes reposent sur un corpus de faits approuvés. La relecture du modèle est complétée par des contrôles de format, longueurs, sources, URL, répétitions, similarité, faux chiffres, promesses, témoignages, ciblage géographique et exclusion du BTP. Les conseils de partage de mot de passe sont refusés ; les formulations négatives sûres telles que « sans partager » et « évitez de partager » sont reconnues. Ces contrôles réduisent les risques, sans prouver automatiquement la vérité de chaque phrase.
 
-## Backlinks
+Chaque tentative comporte au maximum une rédaction, une revue, une correction et une seconde revue. Une étape réussie peut être réutilisée si la signature de son brief, ses faits et son modèle correspondent. Une modification du texte demandé refuse la réutilisation. La date technique d'observation Google est exclue de cette signature. Une requête en double renvoie son résultat enregistré. Les HTTP 502, 503 et 504 disposent d'un seul nouvel essai borné ; les HTTP 429 ne sont pas réessayés. Chaque appel dure au maximum cinquante secondes ; la fonction accepte cent vingt secondes et le client cent vingt-cinq. Le runner est borné à dix minutes, le job et le bail à quinze minutes. Cinq tentatives quotidiennes maximum par version sont conservées avec tout leur historique.
 
-Les pistes initiales France Num et CCI ne sont pas des liens obtenus ni une preuve d'éligibilité. Le module stocke la pertinence, une proposition, l'état de vérification et l'ancre/rel réellement constatés. La vérification exige un lien HTML vers le domaine exact OKKO et un HTTP 200. Un lien nofollow est indiqué comme tel ; aucun bénéfice de classement n'est affirmé. Un échec réseau ne devient jamais un lien acquis.
+Une page publiée doit répondre avec son titre, ses données structurées et sans noindex. Un échec la retire. Le bouton d'arrêt est vérifié avant les actions et au sein de la transaction de publication. Les contenus sont rendus comme texte React, sans HTML fourni par le modèle. Les téléchargements externes utilisent HTTPS, une résolution IPv4 publique épinglée, des limites de taille/durée et la revalidation des redirections ; les adresses privées sont refusées.
 
-Aucun annuaire, partenariat ou formulaire n'est soumis automatiquement dans cette version : aucune plateforme avec permission explicite d'automatisation n'est configurée. Aucun envoi d'email, achat ou campagne ne peut être commandé par le worker. Ajouter une plateforme requiert une permission documentée et un adaptateur séparé. Les téléchargements externes du backend utilisent HTTPS, des adresses IPv4 publiques épinglées à la résolution, une limite de taille, un délai et une revalidation de chaque redirection pour prévenir les accès au réseau privé.
+## Recherche, Search Console et backlinks
 
-## Sauvegarde, retrait et restauration
+Les sujets initiaux et les idées futures sont des hypothèses éditoriales. Aucun volume ni score de faible concurrence n'est fabriqué. La recherche Google publique actuellement non exploitable est signalée dans les journaux, sans contournement ni classement inventé.
 
-Le propriétaire peut exporter toutes les tables GrowthPilot via le dashboard privé. Ce fichier ne contient aucun secret d'authentification. Les versions d'articles sont conservées avant remplacement ou retrait. Le bouton Retirer masque immédiatement la page des lecteurs et du sitemap. Restaurer remet la dernière version publiée ; aucune nouvelle génération n'est nécessaire. La sauvegarde éditoriale hebdomadaire est chiffrée en AES-256-GCM avant d’être envoyée au dépôt public. Elle ne contient aucune clé. Une clé de récupération privée est conservée sur le PC de Lorenzo ; la restauration peut également utiliser AUTH_SECRET tant qu’il n’a pas changé. La restauration éditoriale est disponible avec `npx tsx --env-file=.env.local scripts/growth-restore.ts backup.json` (simulation), puis `--apply` (écriture explicite). Elle suspend l'automatisation et restaure les contenus en brouillon pour revalidation. Les sauvegardes de base Neon restent distinctes du suivi éditorial.
+GSC Wizard fonctionne dans Codex, mais ne fournit pas au serveur un accès autonome. La synchronisation cloud reste à configurer avec GROWTH_GSC_CREDENTIALS, un compte de service autorisé en lecture seule. Les données sont filtrées sur le domaine principal et www ; capbusiness est exclu. Aucun credential du connecteur n'est extrait. Sans connexion cloud, le dashboard le dit et ne crée pas de statistiques.
 
-## Limites à conserver dans la communication
+France Num et CCI sont des pistes, pas des liens obtenus ni une preuve d'éligibilité. Le module conserve les propositions, les contrôles, l'ancre et le rel observés. Il exige un lien HTML réellement présent vers le domaine exact OKKO, sur une page externe HTTP 200. Un problème réseau ne devient ni un lien acquis ni un faux lien perdu. Aucune inscription, campagne ou soumission automatique n'est activée : aucune plateforme autorisant explicitement cette automatisation n'est configurée.
 
-Trois guides hebdomadaires sont un objectif sous réserve de qualité et de disponibilité, pas une garantie de publication ou de classement. La citabilité par les moteurs IA n'est pas garantie. Pas de pages géographiques artificielles, faux chiffres ou témoignages, ni prix non validés. Les secteurs BTP restent exclus suivant la décision de Lorenzo.
+## Contacts et sauvegardes
 
-## Sources techniques vérifiées
+Le formulaire enregistre la demande dans ContactSubmission et Prospect, une notification privée et un compteur agrégé. Validation, honeypot, idempotence et limitation de fréquence sont appliqués. Aucun email ou campagne n'est envoyé par ce parcours. Les clics CTA sont des événements agrégés sans cookie, pas des visiteurs uniques ou des ventes attribuées. Les demandes simulées ont été identifiées puis nettoyées.
 
+Les versions des articles sont conservées. Le propriétaire peut retirer un guide et restaurer sa dernière version publiée. Le dashboard propose un export privé des tables éditoriales, sans clé. Une sauvegarde éditoriale AES-256-GCM est versionnée dans le dépôt chaque semaine et lors des mises à jour du worker. Le job peut sauvegarder les journaux même lorsque la rédaction échoue ; en pause, il n'écrit pas de nouvelle sauvegarde. Cette activité utile contribue au maintien de la planification GitHub, qui peut être désactivée après une longue inactivité du dépôt.
+
+La clé de récupération est conservée séparément sur le PC du propriétaire. Ne jamais la publier. Restauration : npx tsx --env-file=.env.local scripts/growth-restore.ts backup.json (simulation), puis --apply pour l'écriture explicite. La restauration suspend l'automatisation et remet les contenus en brouillon pour revalidation. La clé Gemini se reconnecte séparément, puisqu'elle est exclue des sauvegardes éditoriales.
+
+## Historique des essais
+
+Les petits modèles Qwen locaux ont montré des erreurs factuelles ; leurs textes ont été refusés. Un ancien guide de test brièvement publié a été retiré après relecture et ne constitue pas un contenu final approuvé. Gemini3.8 et3.7 ont rencontré des HTTP503 ; Gemini2.5 n'était pas disponible pour les nouveaux comptes. Ces essais ne sont pas effacés des journaux.
+
+Le premier writer3.6 a produit le texte réel avant l'ajout des signatures de reprise. Une récupération ponctuelle documentée a conservé son résultat original et permis sa réutilisation après vérification du même sujet, modèle, corpus et plan. Cette récupération n'accordait aucune approbation éditoriale. La revue Flash-Lite a ensuite réellement été exécutée par le cycle cloud, puis le guide a été relu par Codex avant calibration et publication.
+
+## Références techniques
+
+- https://ai.google.dev/gemini-api/docs/pricing
+- https://ai.google.dev/gemini-api/docs/billing
+- https://ai.google.dev/api/interactions-api
+- https://ai.google.dev/api/generate-content
+- https://vercel.com/docs/functions/configuring-functions/duration
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
-- https://docs.github.com/en/billing/concepts/product-billing/github-actions
-- https://docs.github.com/en/github-models
-- https://huggingface.co/Qwen/Qwen3-4B-GGUF
-- https://huggingface.co/Qwen/Qwen3-4B
-- https://github.com/ggml-org/llama.cpp/releases/tag/b11696
 - https://developers.google.com/search/docs/fundamentals/using-gen-ai-content
 - https://developers.google.com/search/docs/essentials/spam-policies
-
-## Calibration après les essais cloud
-
-Les premiers essais Qwen3-4B ont validé la chaîne technique (publication HTTP, sitemap et données structurées), mais une relecture a relevé des restrictions de rôle non fondées et un français insuffisant. Le guide de test a été retiré et conservé en refusé avec son historique. Il ne constitue ni un résultat SEO, ni un exemple de contenu final approuvé.
-
-Un essai intermédiaire utilisait Qwen3.5-4B, poids GGUF Q4_K_M de bartowski, révision 4168f45a16a1290d65a4ec0fa312ae917a4c15d6, SHA-256 13c16f426047e2de38cd075bdade4a7bcbc8c774384876f677740cda65f8a983. La licence et l’origine du modèle sont contrôlées ; aucun code tiers du dépôt de poids n’est exécuté. Le binaire llama.cpp reste épinglé séparément. Les instructions /no_think ne sont plus utilisées ; le mode est contrôlé par le template du modèle.
-
-Chaque version de moteur possède son cycle daté et conserve l’historique des versions précédentes. Les publications sont limitées à une par jour civil de Paris et trois par semaine, toutes versions confondues. Une nouvelle version garde son premier guide valide en DRAFT, même si les contrôles automatiques passent. Une relecture du propriétaire ou de Codex est nécessaire avant d’approuver ce guide et d’activer les publications suivantes de ce moteur. Cette calibration concerne l’installation et les changements de moteur, pas chaque publication courante. Le worker ne peut pas s’accorder cette approbation. La revue factuelle et sa justification sont désormais conservées dans les contrôles de chaque guide.
-
-Sources : https://huggingface.co/Qwen/Qwen3.5-4B et https://huggingface.co/bartowski/Qwen_Qwen3.5-4B-GGUF
-
-## Moteur renforcé pour la fidélité factuelle
-
-La calibration 4B a montré ses limites : certaines formulations sur le partage des accès restaient incorrectes malgré la revue. La version courante utilise Qwen3.5-9B, quantification Q4_K_M de bartowski, révision 182be2fd6c7bc44887d88a91cb03ff009cc9f549 et SHA-256 d784ce9eda1a5a7b51e8f705a9e6310844bf4f173654d115823c775fdea56d43. Le raisonnement est activé avec un budget borné de 256 jetons. Aucun changement de moteur ne peut publier avant sa calibration privée. Les anciennes versions de worker sont refusées au démarrage.
-
-Le runner possède une échéance globale de cinquante minutes, le bail expire après cinquante-cinq minutes et GitHub arrête le job après une heure. Ces durées sont des plafonds de sécurité pour l’exécution CPU gratuite, pas une promesse de latence. Une correction bornée reste possible. Les titres sont ajustés mécaniquement (première proposition et ajout du contexte Google au besoin), puis les contrôles SEO et la revue portent sur le texte réellement publié. Le contrôleur évalue uniquement l’article à partir du corpus validé, sans auditer les références ni les idées futures comme du contenu publié.
-
-Le solde AI Gateway du compte a été consulté en lecture seule : zéro crédit et zéro consommation. Aucun crédit acheté, aucune inférence Gateway et aucun moyen de paiement ajouté.
-
-Sources : https://huggingface.co/Qwen/Qwen3.5-9B et https://huggingface.co/bartowski/Qwen_Qwen3.5-9B-GGUF
-
-## Connexion Gemini gratuite autorisée le 16 octobre 2026
-
-Lorenzo a autorisé Google AI Studio en Free Tier uniquement, sans activer la facturation. Les deux générations Qwen3.5-9B ont été refusées après contrôle et relecture ; aucune n'a été autorisée. Les détails des modèles locaux ci-dessus restent l'historique des essais, pas le moteur courant.
-
-Le moteur courant est gemini-3.8-flash via l'API Interactions officielle et la version gemini38-free-20261016. La clé se saisit uniquement dans le dashboard privé, après création d'un projet Free Tier sans compte de facturation associé. L'enregistrement exige la confirmation du propriétaire et vérifie l'accès au modèle par une requête de métadonnées sans génération. Le backend ne peut pas activer la facturation Google : aucune API de facturation, carte ou repli payant n'est intégré. Le statut financier du projet est confirmé par le propriétaire dans AI Studio ; un solde de crédits ou une estimation de consommation ne constitue pas cette vérification.
-
-La clé est chiffrée en AES-256-GCM avec contexte distinct et conservée dans GrowthCredential. Cette table est exclue des exports et des sauvegardes éditoriales. GitHub ne reçoit jamais la clé ; le runner utilise son identité OIDC pour demander une rédaction au serveur OKKO. Seuls les briefs et contenus destinés au site sont envoyés à Google, sans données des clients ou demandes de contact. store=false est envoyé à l'API ; cela n'annule pas les conditions de traitement du Free Tier de Google.
-
-Quatre étapes d'inférence au maximum sont prévues par tentative : rédaction, revue, correction éventuelle, seconde revue. Chaque étape est réservée et son résultat mis en cache. Une réponse réseau perdue ne provoque pas une seconde requête silencieuse. Un HTTP 429 arrête la tentative sans repli payant. Les requêtes durent au maximum cinquante secondes ; le runner a une échéance de dix minutes, le job et le bail de quinze minutes. Une nouvelle calibration privée est toujours obligatoire avant d'activer les publications de ce moteur.
-
-Les tests simulés couvrent le chiffrement et sa résistance à une modification, le format de réponse officiel, l'idempotence, l'arrêt sur quota et l'absence de clé. Ces tests ne sont pas une preuve de qualité d'un article réel. La réception finale indique séparément si la connexion et la calibration réelles ont été effectuées.
-
-Sources vérifiées : https://ai.google.dev/gemini-api/docs/billing ; https://ai.google.dev/gemini-api/docs/pricing ; https://ai.google.dev/api/interactions-api ; https://ai.google.dev/gemini-api/docs/structured-output ; https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash
-
-## Modèle disponible après les tests réels
-
-Le 16 octobre, la clé propriétaire a été enregistrée et les lectures de métadonnées ont réussi. Trois essais cloud de Gemini3.8 ont reçu HTTP503 (forte demande), sans produire d'article. Les essais3.7 ont aussi reçu503 et2.5 était indisponible pour les nouveaux comptes. Gemini3.6 Flash a ensuite répondu HTTP200 sur l'API Interactions avec cette même clé. Le moteur courant devient gemini-3.6-flash, version gemini36-free-20261016, toujours en Free Tier sans facturation. Le test de disponibilité ne remplace pas la calibration sur un vrai guide. Les échecs précédents restent dans les journaux et les sauvegardes sont exécutées même si la rédaction échoue. Aucune approbation de publication des anciens moteurs n'est réutilisée.
