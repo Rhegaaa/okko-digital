@@ -88,3 +88,7 @@ Quatre étapes d'inférence au maximum sont prévues par tentative : rédaction,
 Les tests simulés couvrent le chiffrement et sa résistance à une modification, le format de réponse officiel, l'idempotence, l'arrêt sur quota et l'absence de clé. Ces tests ne sont pas une preuve de qualité d'un article réel. La réception finale indique séparément si la connexion et la calibration réelles ont été effectuées.
 
 Sources vérifiées : https://ai.google.dev/gemini-api/docs/billing ; https://ai.google.dev/gemini-api/docs/pricing ; https://ai.google.dev/api/interactions-api ; https://ai.google.dev/gemini-api/docs/structured-output ; https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash
+
+## Modèle disponible après les tests réels
+
+Le 16 octobre, la clé propriétaire a été enregistrée et les lectures de métadonnées ont réussi. Trois essais cloud de Gemini3.8 ont reçu HTTP503 (forte demande), sans produire d'article. Les essais3.7 ont aussi reçu503 et2.5 était indisponible pour les nouveaux comptes. Gemini3.6 Flash a ensuite répondu HTTP200 sur l'API Interactions avec cette même clé. Le moteur courant devient gemini-3.6-flash, version gemini36-free-20261016, toujours en Free Tier sans facturation. Le test de disponibilité ne remplace pas la calibration sur un vrai guide. Les échecs précédents restent dans les journaux et les sauvegardes sont exécutées même si la rédaction échoue. Aucune approbation de publication des anciens moteurs n'est réutilisée.

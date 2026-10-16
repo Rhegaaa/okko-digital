@@ -2,7 +2,7 @@
 import os,json,urllib.request,urllib.error,urllib.parse,time,pathlib,re,sys
 BASE='https://okko-digital.fr'
 AUD=BASE+'/growthpilot'
-MODEL_RELEASE='gemini38-free-20261016'
+MODEL_RELEASE='gemini36-free-20261016'
 DEADLINE=time.monotonic()+10*60
 CURRENT_RUN=None
 PHASES=iter(['writer','review','repair','reviewRepair'])

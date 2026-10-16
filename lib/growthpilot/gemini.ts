@@ -4,7 +4,7 @@ import { decryptCredential } from './credential';
 import { GROWTH_RELEASE } from './content';
 import schemas from './model-schema.json';
 
-export const GEMINI_MODEL='gemini-3.8-flash';
+export const GEMINI_MODEL='gemini-3.6-flash';
 const endpoint='https://generativelanguage.googleapis.com/v1beta';
 export type InferencePhase='writer'|'review'|'repair'|'reviewRepair';
 export async function geminiStatus(){
