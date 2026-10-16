@@ -12,7 +12,7 @@ export async function POST(req:Request){
   const parsed=body.safeParse(await req.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'Requête invalide'},{status:400});
   const v=parsed.data;try{
     if(v.op==='backup')return NextResponse.json(await encryptedBackup());
-    if(v.op==='start')return NextResponse.json(await startRun(owner));await assertLease(owner);
+    if(v.op==='start'){if(v.release!==GROWTH_RELEASE)throw Error('Version du moteur périmée ; lancement refusé.');return NextResponse.json(await startRun(owner));}await assertLease(owner);
     if(!v.id)throw Error('Identifiant requis.');
     if(v.op==='content'){if(v.release!==GROWTH_RELEASE)throw Error('Version du moteur périmée ; aucun contenu accepté.');if(!v.opportunityId)throw Error('Sujet requis.');return NextResponse.json(await saveGenerated(owner,v.id,v.opportunityId,v.content,v.critic,v.usage||{input:0,output:0}));}
     if(v.op==='verify')return NextResponse.json(await verifyArticle(owner,v.id));

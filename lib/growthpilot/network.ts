@@ -17,6 +17,7 @@ export async function fetchPublic(value:string,redirects=0):Promise<{url:string;
 }
 export function htmlText(html:string){return html.replace(/<script\b[\s\S]*?<\/script>/gi,' ').replace(/<style\b[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&amp;/g,'&').replace(/&#x27;|&#39;|&apos;/g,"'").replace(/&quot;/g,'"').replace(/\s+/g,' ').trim();}
 export function backlinkIn(html:string,base:string){
+  try{const host=new URL(base).hostname;if(host==='okko-digital.fr'||host.endsWith('.okko-digital.fr'))return null;}catch{return null;}
   for(const match of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)){
     const href=match[1].match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];if(!href)continue;
     try{const u=new URL(href.replace(/&amp;/g,'&'),base);if(u.protocol==='https:'&&(u.hostname==='okko-digital.fr'||u.hostname==='www.okko-digital.fr'))return {target:u.href,rel:match[1].match(/\brel\s*=\s*["']([^"']*)["']/i)?.[1]||'',evidence:htmlText(match[2]).slice(0,200)||'Lien sans ancre textuelle'};}catch{}

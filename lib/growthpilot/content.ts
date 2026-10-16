@@ -1,5 +1,5 @@
 import { z } from 'zod';
-export const GROWTH_RELEASE='qwen35-4b-20261016';
+export const GROWTH_RELEASE='qwen35-9b-20261016';
 export const articleSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(12).max(100),
   title: z.string().min(25).max(85), description: z.string().min(90).max(180),
@@ -32,6 +32,7 @@ export function quality(raw:unknown, existing:{title:string;text:string}[], avai
   if(a.sections.some(s=>s.sourceIds.some(id=>!availableIds.includes(id))))issues.push('Source absente ou non vérifiée.');
   if(new Set(a.sections.flatMap(s=>s.sourceIds)).size<2)issues.push('Au moins deux sources vérifiées sont nécessaires.');
   if(/<\/?[a-z!]|javascript:|https?:\/\//i.test(text))issues.push('HTML ou lien libre interdit dans le texte généré.');
+  if(text.split(/[.!?]+/).some(sentence=>/(?:partag[era-z]*|transmettr[ea-z]*|donn[era-z]*).{0,40}(?:compte principal|mot de passe)/i.test(sentence)&&!/\bpas\b|jamais|déconseill|éviter|ne\s/i.test(sentence)))issues.push('Le guide ne doit pas conseiller de partager un compte principal ou un mot de passe.');
   if(/rôle est limité aux tâches techniques|sans accès aux informations sensibles|ne peut pas les produire|il est interdiction|avant la déléguée/i.test(text))issues.push('Restriction de rôle non sourcée ou formulation incorrecte déjà repérée lors de la calibration.');
   if(/\d/.test(text))issues.push('Détail chiffré absent du corpus autorisé : supprimer les dimensions, quantités ou exigences numériques inventées, ainsi que les numéros de listes.');
   if(/\b\d+(?:[,.]\d+)?\s*(?:%|€|euros\b|clients\b|avis\b|jours\b|semaines\b|mois\b|h\b|heures\b)/i.test(text))issues.push('Statistique, prix ou délai chiffré non sourcé.');
