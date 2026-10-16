@@ -38,5 +38,9 @@ export function quality(raw:unknown, existing:{title:string;text:string}[], avai
   return {ok:!issues.length,issues,words};
 }
 export function frenchDay(date=new Date()) {return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);}
-export function weekStart(date=new Date()) {const d=new Date(`${frenchDay(date)}T12:00:00Z`);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d;}
+export function weekStart(date=new Date()) {
+  const d=new Date(`${frenchDay(date)}T00:00:00Z`);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));
+  const offset=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',hourCycle:'h23'}).format(d));
+  return new Date(d.getTime()-offset*3600000);
+}
 export function publicationDay(date=new Date()) {return [1,3,5].includes(new Date(`${frenchDay(date)}T12:00:00Z`).getUTCDay());}
