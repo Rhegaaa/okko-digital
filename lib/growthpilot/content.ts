@@ -1,5 +1,5 @@
 import { z } from 'zod';
-export const GROWTH_RELEASE='qwen35-9b-20261016';
+export const GROWTH_RELEASE='gemini38-free-20261016';
 export const articleSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(12).max(100),
   title: z.string().min(25).max(85), description: z.string().min(90).max(180),

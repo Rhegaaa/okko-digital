@@ -5,6 +5,7 @@ import { SEEDS, LINK_SEEDS } from './seeds';
 import { fetchPublic, htmlText, backlinkIn } from './network';
 import { SEO_PAGES } from '@/lib/seo-pages-data';
 import { dailyResearch } from './research';
+import { geminiStatus } from './gemini';
 export async function ensureGrowth(){
   await prisma.growthState.upsert({where:{id:'okko'},update:{},create:{id:'okko'}});
   for(const [topic,keyword,cluster,angle,commercialPath] of SEEDS)await prisma.growthOpportunity.upsert({where:{topic},update:{},create:{topic,keyword,cluster,angle,commercialPath}});
@@ -17,9 +18,10 @@ export async function existingTexts(){
 }
 export async function startRun(owner:string,date=new Date()){
   await ensureGrowth();const state=await prisma.growthState.findUniqueOrThrow({where:{id:'okko'}});if(!state.enabled)return {status:'PAUSED'};
+  if(!(await geminiStatus()).connected)return {status:'MODEL_NOT_CONNECTED'};
   const id=frenchDay(date)+':'+GROWTH_RELEASE;await prisma.growthRun.upsert({where:{id},update:{},create:{id}});
   const run=await prisma.growthRun.findUniqueOrThrow({where:{id}});if(run.status==='COMPLETE')return {status:'DONE'};if(run.attempts>=5)return {status:'ATTEMPTS_EXHAUSTED'};
-  const leased=await prisma.growthState.updateMany({where:{id:'okko',enabled:true,OR:[{leaseUntil:null},{leaseUntil:{lt:new Date()}},{leaseOwner:owner}]},data:{leaseOwner:owner,leaseUntil:new Date(Date.now()+55*60_000),lastHeartbeat:new Date()}});if(!leased.count)return {status:'BUSY'};
+  const leased=await prisma.growthState.updateMany({where:{id:'okko',enabled:true,OR:[{leaseUntil:null},{leaseUntil:{lt:new Date()}},{leaseOwner:owner}]},data:{leaseOwner:owner,leaseUntil:new Date(Date.now()+15*60_000),lastHeartbeat:new Date()}});if(!leased.count)return {status:'BUSY'};
   await prisma.growthRun.update({where:{id},data:{status:'RUNNING',attempts:{increment:1},finishedAt:null}});
   await logRun(id,'Début du cycle : collecte de sources, contrôles et éventuelle publication.');
   for(const message of await dailyResearch())await logRun(id,message);
@@ -27,7 +29,7 @@ export async function startRun(owner:string,date=new Date()){
   const thisWeek=await prisma.growthArticle.count({where:{publishedAt:{gte:weekStart(date)},status:{in:['PUBLISHED','VERIFYING']}}});
   const today=await prisma.growthArticle.count({where:{publishedAt:{gte:dayStart(date)},status:{in:['PUBLISHED','VERIFYING']}}});
   const opportunity=!resume&&publicationDay(date)&&thisWeek<3&&today===0?await prisma.growthOpportunity.findFirst({where:{status:'NEW'},orderBy:[{priority:'desc'},{createdAt:'asc'}]}):null;
-  const sources=await Promise.all(SOURCES.map(async source=>{try{const page=await fetchPublic(source.url);if(page.status!==200)return null;const text=htmlText(page.text);if(text.length<500||/unusual traffic|captcha/i.test(text.slice(0,300)))return null;return {...source,checkedAt:new Date().toISOString(),sample:text.slice(0,4000)};}catch{return null;}}));
+  const sources=await Promise.all(SOURCES.map(async source=>{for(let attempt=0;attempt<2;attempt++){try{const page=await fetchPublic(source.url);if(page.status!==200)throw Error('Source non accessible');const text=htmlText(page.text);if(text.length<500||/unusual traffic|captcha/i.test(text.slice(0,300)))throw Error('Source non exploitable');return {...source,checkedAt:new Date().toISOString(),sample:text.slice(0,4000)};}catch{}}return null;}));
   const verified=sources.filter((s):s is NonNullable<typeof s>=>!!s);
   await logRun(id,`${verified.length} sources officielles accessibles. Concurrence et volumes inconnus sans mesure de recherche.`);
   const backlinks=await prisma.growthBacklink.findMany({take:5,orderBy:{checkedAt:'asc'}});

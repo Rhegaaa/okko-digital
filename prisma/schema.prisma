@@ -538,3 +538,12 @@ model GrowthSnapshot {
   payload Json
   updatedAt DateTime @updatedAt
 }
+
+// Never include this table in editorial exports or GitHub backups.
+model GrowthCredential {
+  id String @id
+  encryptedKey String
+  enabled Boolean @default(true)
+  freeTierConfirmedAt DateTime
+  updatedAt DateTime @updatedAt
+}

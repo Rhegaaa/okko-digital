@@ -74,3 +74,17 @@ Le runner possède une échéance globale de cinquante minutes, le bail expire a
 Le solde AI Gateway du compte a été consulté en lecture seule : zéro crédit et zéro consommation. Aucun crédit acheté, aucune inférence Gateway et aucun moyen de paiement ajouté.
 
 Sources : https://huggingface.co/Qwen/Qwen3.5-9B et https://huggingface.co/bartowski/Qwen_Qwen3.5-9B-GGUF
+
+## Connexion Gemini gratuite autorisée le 16 octobre 2026
+
+Lorenzo a autorisé Google AI Studio en Free Tier uniquement, sans activer la facturation. Les deux générations Qwen3.5-9B ont été refusées après contrôle et relecture ; aucune n'a été autorisée. Les détails des modèles locaux ci-dessus restent l'historique des essais, pas le moteur courant.
+
+Le moteur courant est gemini-3.8-flash via l'API Interactions officielle et la version gemini38-free-20261016. La clé se saisit uniquement dans le dashboard privé, après création d'un projet Free Tier sans compte de facturation associé. L'enregistrement exige la confirmation du propriétaire et vérifie l'accès au modèle par une requête de métadonnées sans génération. Le backend ne peut pas activer la facturation Google : aucune API de facturation, carte ou repli payant n'est intégré. Le statut financier du projet est confirmé par le propriétaire dans AI Studio ; un solde de crédits ou une estimation de consommation ne constitue pas cette vérification.
+
+La clé est chiffrée en AES-256-GCM avec contexte distinct et conservée dans GrowthCredential. Cette table est exclue des exports et des sauvegardes éditoriales. GitHub ne reçoit jamais la clé ; le runner utilise son identité OIDC pour demander une rédaction au serveur OKKO. Seuls les briefs et contenus destinés au site sont envoyés à Google, sans données des clients ou demandes de contact. store=false est envoyé à l'API ; cela n'annule pas les conditions de traitement du Free Tier de Google.
+
+Quatre étapes d'inférence au maximum sont prévues par tentative : rédaction, revue, correction éventuelle, seconde revue. Chaque étape est réservée et son résultat mis en cache. Une réponse réseau perdue ne provoque pas une seconde requête silencieuse. Un HTTP 429 arrête la tentative sans repli payant. Les requêtes durent au maximum cinquante secondes ; le runner a une échéance de dix minutes, le job et le bail de quinze minutes. Une nouvelle calibration privée est toujours obligatoire avant d'activer les publications de ce moteur.
+
+Les tests simulés couvrent le chiffrement et sa résistance à une modification, le format de réponse officiel, l'idempotence, l'arrêt sur quota et l'absence de clé. Ces tests ne sont pas une preuve de qualité d'un article réel. La réception finale indique séparément si la connexion et la calibration réelles ont été effectuées.
+
+Sources vérifiées : https://ai.google.dev/gemini-api/docs/billing ; https://ai.google.dev/gemini-api/docs/pricing ; https://ai.google.dev/api/interactions-api ; https://ai.google.dev/gemini-api/docs/structured-output ; https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash

@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import { encryptCredential,decryptCredential } from '../lib/growthpilot/credential';
+import { inferGemini,parseGeminiResponse,GEMINI_MODEL } from '../lib/growthpilot/gemini';
+import { GROWTH_RELEASE } from '../lib/growthpilot/content';
+import { prisma } from '../lib/db';
+
+async function main(){
+  const secret='fixture-only-not-a-real-provider-key';const envelope=encryptCredential(secret);
+  assert(!envelope.includes(secret));assert.equal(decryptCredential(envelope),secret);
+  assert.notEqual(envelope,encryptCredential(secret));const tampered=JSON.parse(envelope);tampered.tag=Buffer.alloc(16).toString('base64');assert.throws(()=>decryptCredential(JSON.stringify(tampered)));
+  const response={model:GEMINI_MODEL,status:'completed',steps:[{type:'model_output',content:[{type:'text',text:'{"ok":true}'}]}],usage:{total_input_tokens:100,total_output_tokens:30,total_thought_tokens:10}};
+  assert.deepEqual(parseGeminiResponse(response),{content:{ok:true},usage:{prompt_tokens:100,completion_tokens:40}});
+  assert.throws(()=>parseGeminiResponse({...response,status:'requires_action'}));assert.throws(()=>parseGeminiResponse({...response,model:'unexpected-model'}));
+  // In-memory replacements only: no database mutation and no actual API call.
+  const db=prisma as any;const saved={run:db.growthRun.findUnique,credential:db.growthCredential.findUnique,find:db.growthSnapshot.findUnique,create:db.growthSnapshot.create,update:db.growthSnapshot.update,fetch:globalThis.fetch};
+  const snapshots=new Map<string,any>();let requests=0;let status=200;
+  try{
+    db.growthRun.findUnique=async()=>({status:'RUNNING',attempts:1});
+    db.growthCredential.findUnique=async()=>({enabled:true,freeTierConfirmedAt:new Date(),encryptedKey:envelope});
+    db.growthSnapshot.findUnique=async({where}:any)=>snapshots.get(where.id)||null;
+    db.growthSnapshot.create=async({data}:any)=>{assert(!snapshots.has(data.id));snapshots.set(data.id,data);return data;};
+    db.growthSnapshot.update=async({where,data}:any)=>{snapshots.set(where.id,{...snapshots.get(where.id),...data});return snapshots.get(where.id);};
+    globalThis.fetch=async(url,options)=>{requests++;assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/interactions');assert.equal((options?.headers as any)['x-goog-api-key'],secret);const body=JSON.parse(options?.body as string);assert.equal(body.model,GEMINI_MODEL);assert.equal(body.store,false);assert(!('tools' in body));return new Response(JSON.stringify(response),{status});};
+    const runId='TEST:'+GROWTH_RELEASE;
+    const first=await inferGemini(runId,'writer','system fixture','public brief fixture');assert.equal(requests,1);
+    assert.deepEqual(await inferGemini(runId,'writer','system fixture','public brief fixture'),first);assert.equal(requests,1,'Cached phase must not call Gemini twice.');
+    status=429;await assert.rejects(()=>inferGemini(runId,'review','system fixture','public brief fixture'),/Quota gratuit/);assert.equal(requests,2);
+    await assert.rejects(()=>inferGemini(runId,'review','system fixture','public brief fixture'),/déjà été tentée/);assert.equal(requests,2,'Quota failure must not trigger a paid fallback or silent retry.');
+    db.growthCredential.findUnique=async()=>null;await assert.rejects(()=>inferGemini(runId,'repair','system fixture','public brief fixture'),/Connecter un projet/);assert.equal(requests,2);
+  }finally{
+    db.growthRun.findUnique=saved.run;db.growthCredential.findUnique=saved.credential;db.growthSnapshot.findUnique=saved.find;db.growthSnapshot.create=saved.create;db.growthSnapshot.update=saved.update;globalThis.fetch=saved.fetch;
+  }
+  console.log('Gemini credential encryption/tamper, response parsing, idempotence, free-quota stop and missing-key checks passed. No live API request.');
+}
+main().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>prisma.$disconnect());
