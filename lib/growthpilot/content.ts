@@ -1,4 +1,5 @@
 import { z } from 'zod';
+export const GROWTH_RELEASE='qwen35-4b-20261016';
 export const articleSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(12).max(100),
   title: z.string().min(25).max(85), description: z.string().min(90).max(180),
@@ -13,8 +14,8 @@ export const SOURCES = [
   { id:'reviews',url:'https://support.google.com/business/answer/3474122?hl=fr',title:'Google : demander des avis',facts:'Un établissement peut partager son lien de demande d’avis ou un QR code. Il demande des avis authentiques, sans offrir de contrepartie ni sélectionner seulement les clients satisfaits.' },
   { id:'reply',url:'https://support.google.com/business/answer/3474050?hl=fr',title:'Google : répondre aux avis',facts:'Les réponses aux avis sont publiques. Une réponse doit rester professionnelle et ne pas exposer les informations personnelles du client. Une réclamation sensible peut nécessiter un échange privé et une validation interne.' },
   { id:'hours',url:'https://support.google.com/business/answer/6303076?hl=fr',title:'Google : horaires exceptionnels',facts:'Les horaires exceptionnels servent à préciser les ouvertures et fermetures pour des dates particulières. Le gestionnaire vérifie les informations réelles de l’établissement avant une modification.' },
-  { id:'managers',url:'https://support.google.com/business/answer/3403100?hl=fr',title:'Google : propriétaires et gestionnaires',facts:'Un propriétaire peut inviter un gestionnaire. Le client garde la propriété et ne transmet pas son mot de passe Google à une agence.' },
-  { id:'photos',url:'https://support.google.com/business/answer/6103862?hl=fr',title:'Google : photos de l’établissement',facts:'Les photos doivent représenter réellement l’établissement, ses produits ou son activité. Le client fournit des visuels qu’il est autorisé à utiliser. Une agence peut les sélectionner et les organiser, sans inventer une réalisation.' },
+  { id:'managers',url:'https://support.google.com/business/answer/3403100?hl=fr',title:'Google : propriétaires et gestionnaires',facts:'Un propriétaire peut inviter un gestionnaire. Il est conseillé au client de conserver la propriété et de ne pas partager son mot de passe Google. Les droits du gestionnaire concernent la fiche. Un circuit de validation avec le client peut être convenu ; il ne faut pas le présenter comme un verrou automatique imposé par Google.' },
+  { id:'photos',url:'https://support.google.com/business/answer/6103862?hl=fr',title:'Google : photos de l’établissement',facts:'Les photos doivent représenter réellement l’établissement, ses produits ou son activité. Le client peut fournir des visuels qu’il est autorisé à utiliser. Une agence peut les sélectionner et les organiser, sans inventer une réalisation. Une agence ou un photographe peut aussi réaliser de vraies photos si cette prestation est convenue ; cela ne signifie pas qu’OKKO propose une prestation photographique.' },
 ] as const;
 export function normalize(text:string) { return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
 export function plain(a:GrowthContent) { return [a.title,a.intro,...a.sections.flatMap(s=>[s.heading,...s.paragraphs,...s.items]),...a.faq.flatMap(f=>[f.question,f.answer]),...a.checklist].join(' '); }
@@ -31,6 +32,7 @@ export function quality(raw:unknown, existing:{title:string;text:string}[], avai
   if(a.sections.some(s=>s.sourceIds.some(id=>!availableIds.includes(id))))issues.push('Source absente ou non vérifiée.');
   if(new Set(a.sections.flatMap(s=>s.sourceIds)).size<2)issues.push('Au moins deux sources vérifiées sont nécessaires.');
   if(/<\/?[a-z!]|javascript:|https?:\/\//i.test(text))issues.push('HTML ou lien libre interdit dans le texte généré.');
+  if(/rôle est limité aux tâches techniques|sans accès aux informations sensibles|ne peut pas les produire|il est interdiction|avant la déléguée/i.test(text))issues.push('Restriction de rôle non sourcée ou formulation incorrecte déjà repérée lors de la calibration.');
   if(/\d/.test(text))issues.push('Détail chiffré absent du corpus autorisé : supprimer les dimensions, quantités ou exigences numériques inventées, ainsi que les numéros de listes.');
   if(/\b\d+(?:[,.]\d+)?\s*(?:%|€|euros\b|clients\b|avis\b|jours\b|semaines\b|mois\b|h\b|heures\b)/i.test(text))issues.push('Statistique, prix ou délai chiffré non sourcé.');
   if(/nous garantissons|classement garanti|position garantie|premi[eè]re? (place|position) assur[eé]e|notre client|nos clients|t[eé]moignage|[àa] (Paris|Lyon|Marseille|Annecy)|plombier|ma[çc]on|couvreur|b[aâ]timent/i.test(text))issues.push('Promesse, témoignage, ciblage géographique ou BTP interdit.');
@@ -46,3 +48,5 @@ export function weekStart(date=new Date()) {
   return new Date(d.getTime()-offset*3600000);
 }
 export function publicationDay(date=new Date()) {return [1,3,5].includes(new Date(`${frenchDay(date)}T12:00:00Z`).getUTCDay());}
+
+export function dayStart(date=new Date()){const d=new Date(`${frenchDay(date)}T00:00:00Z`);const offset=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',hourCycle:'h23'}).format(d));return new Date(d.getTime()-offset*3600000);}

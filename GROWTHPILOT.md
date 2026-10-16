@@ -12,7 +12,7 @@ Le formulaire préparait un mailto sans enregistrer la demande. Il enregistre d�
 
 GitHub Actions → jeton OIDC éphémère → API worker limitée à GrowthPilot → tables Growth* → routes publiques dynamiques du site. Le worker ne reçoit ni le mot de passe Postgres, ni le secret Auth.js, ni un droit d'écriture Git. Le backend exige le dépôt, l'identifiant numérique, le workflow, la branche et l'audience exacts. Aucun token n'est écrit dans les fichiers ou journaux.
 
-Le modèle Qwen3-4B-GGUF sous licence Apache-2.0 s'exécute sur le runner standard Ubuntu gratuit du dépôt public avec llama.cpp. Fichiers et binaires sont épinglés par révision et SHA-256. Il n'y a aucune API d'inférence facturée. GitHub Models n'est pas utilisé : sa documentation annonce son arrêt au 30 juillet 2026. Aucun service payant ni palier supérieur n'est activé. Une indisponibilité du modèle ou un changement de quota fait échouer le cycle ; aucun repli payant.
+Le modèle Qwen3.5-4B, quantification GGUF publiée par bartowski sous licence Apache-2.0 s'exécute sur le runner standard Ubuntu gratuit du dépôt public avec llama.cpp. Fichiers et binaires sont épinglés par révision et SHA-256. Il n'y a aucune API d'inférence facturée. GitHub Models n'est pas utilisé : sa documentation annonce son arrêt au 30 juillet 2026. Aucun service payant ni palier supérieur n'est activé. Une indisponibilité du modèle ou un changement de quota fait échouer le cycle ; aucun repli payant.
 
 La génération utilise les paramètres non-thinking recommandés par Qwen (température 0,7, top-p 0,8, top-k 20) et une pénalité de présence de 1,5 contre les répétitions. Un plan distinct par thème répartit les sources pertinentes entre les sections. Les sorties sont contraintes par un schéma JSON, puis recontrôlées côté serveur ; ces contraintes ne remplacent pas la vérification factuelle. La reprise réécrit depuis le brief et ses erreurs, sans recopier le texte refusé. Le plafond quotidien de reprise est de cinq tentatives ; les cycles terminés sont idempotents.
 
@@ -54,3 +54,13 @@ Trois guides hebdomadaires sont un objectif sous réserve de qualité et de disp
 - https://github.com/ggml-org/llama.cpp/releases/tag/b11696
 - https://developers.google.com/search/docs/fundamentals/using-gen-ai-content
 - https://developers.google.com/search/docs/essentials/spam-policies
+
+## Calibration après les essais cloud
+
+Les premiers essais Qwen3-4B ont validé la chaîne technique (publication HTTP, sitemap et données structurées), mais une relecture a relevé des restrictions de rôle non fondées et un français insuffisant. Le guide de test a été retiré et conservé en refusé avec son historique. Il ne constitue ni un résultat SEO, ni un exemple de contenu final approuvé.
+
+Le moteur actuel est Qwen3.5-4B, poids GGUF Q4_K_M de bartowski, révision 4168f45a16a1290d65a4ec0fa312ae917a4c15d6, SHA-256 13c16f426047e2de38cd075bdade4a7bcbc8c774384876f677740cda65f8a983. La licence et l’origine du modèle sont contrôlées ; aucun code tiers du dépôt de poids n’est exécuté. Le binaire llama.cpp reste épinglé séparément. Les instructions /no_think ne sont plus utilisées ; le mode est contrôlé par le template du modèle.
+
+Chaque version de moteur possède son cycle daté et conserve l’historique des versions précédentes. Les publications sont limitées à une par jour civil de Paris et trois par semaine, toutes versions confondues. Une nouvelle version garde son premier guide valide en DRAFT, même si les contrôles automatiques passent. Une relecture du propriétaire ou de Codex est nécessaire avant d’approuver ce guide et d’activer les publications suivantes de ce moteur. Cette calibration concerne l’installation et les changements de moteur, pas chaque publication courante. Le worker ne peut pas s’accorder cette approbation. La revue factuelle et sa justification sont désormais conservées dans les contrôles de chaque guide.
+
+Sources : https://huggingface.co/Qwen/Qwen3.5-4B et https://huggingface.co/bartowski/Qwen_Qwen3.5-4B-GGUF

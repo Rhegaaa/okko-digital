@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireAdmin,unauthorized,badRequest,readJson } from '@/lib/admin-api';
-import { ensureGrowth } from '@/lib/growthpilot/engine';
+import { ensureGrowth,publishCalibration } from '@/lib/growthpilot/engine';
 import { publicUrl } from '@/lib/growthpilot/network';
 const schema=z.discriminatedUnion('op',[
   z.object({op:z.literal('toggle'),enabled:z.boolean()}),
+  z.object({op:z.literal('publish'),id:z.string()}),
   z.object({op:z.literal('withdraw'),id:z.string()}),
   z.object({op:z.literal('restore'),id:z.string()}),
   z.object({op:z.literal('retry'),id:z.string()}),
@@ -19,6 +20,7 @@ export async function POST(req:Request){
       if(!v.enabled)for(const run of await tx.growthRun.findMany({where:{status:'RUNNING'}}))await tx.growthRun.update({where:{id:run.id},data:{status:'PAUSED',finishedAt:new Date(),logs:[...(Array.isArray(run.logs)?run.logs:[]),{at:new Date().toISOString(),message:'Arrêt demandé depuis le dashboard : publication bloquée et cycle interrompu.'}]}});
     });return NextResponse.json({ok:true});
   }
+  if(v.op==='publish'){try{return NextResponse.json(await publishCalibration(v.id));}catch(e){return badRequest(e instanceof Error?e.message:'Publication impossible.');}}
   if(v.op==='backlink'){try{publicUrl(v.url);}catch{return badRequest('Lien public HTTPS requis.');}await prisma.growthBacklink.upsert({where:{url:v.url},update:{label:v.label,rationale:v.rationale},create:{url:v.url,label:v.label,rationale:v.rationale,proposal:'Préparer une proposition pertinente après lecture de la ligne éditoriale et de la procédure du site. Aucun envoi automatique.'}});return NextResponse.json({ok:true});}
   if(v.op==='retry'){await prisma.growthOpportunity.update({where:{id:v.id},data:{status:'NEW'}});return NextResponse.json({ok:true});}
   const row=await prisma.growthArticle.findUnique({where:{id:v.id},include:{revisions:{orderBy:{createdAt:'desc'},take:1}}});if(!row)return badRequest('Article introuvable.');
