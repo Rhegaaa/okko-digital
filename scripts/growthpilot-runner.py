@@ -6,6 +6,18 @@ MODEL_URL='https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/bc640142c66e1fdd12a
 MODEL_SHA='7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5'
 BIN_URL='https://github.com/ggml-org/llama.cpp/releases/download/b11696/llama-b11696-bin-ubuntu-x64.tar.gz'
 BIN_SHA='6a04629ca5265eb4c5c7d6edec8d6fa429e7e7da2de1cd5d5e357a492fc8f802'
+def text_schema(minimum=1,maximum=2500):return {'type':'string','minLength':minimum,'maxLength':maximum}
+def array_schema(item,minimum=0,maximum=7):return {'type':'array','items':item,'minItems':minimum,'maxItems':maximum}
+def object_schema(properties):return {'type':'object','properties':properties,'required':list(properties),'additionalProperties':False}
+ARTICLE_SCHEMA=object_schema({
+    'slug':{'type':'string','pattern':'^[a-z0-9]+(?:-[a-z0-9]+)*$','minLength':12,'maxLength':100},
+    'title':text_schema(25,85),'description':text_schema(90,180),'intro':text_schema(180,1200),
+    'sections':array_schema(object_schema({'heading':text_schema(10,140),'paragraphs':array_schema(text_schema(250,1500),2,3),'items':array_schema(text_schema(15,300),0,4),'sourceIds':array_schema({'type':'string','enum':['ranking','reviews','reply','hours','managers','photos']},1,3)}),4,5),
+    'faq':array_schema(object_schema({'question':text_schema(15,160),'answer':text_schema(80,500)}),0,2),
+    'checklist':array_schema(text_schema(15,250),3,5),
+    'futureTopics':array_schema(object_schema({'keyword':text_schema(20,120),'angle':text_schema(40,300)}),0,2),
+})
+CRITIC_SCHEMA=object_schema({'approved':{'type':'boolean'},'unsupportedClaims':array_schema(text_schema(5,500),0,10),'reason':text_schema(15,1200)})
 
 def request(url,data=None,headers=None,timeout=60):
     req=urllib.request.Request(url,data=json.dumps(data).encode() if data is not None else None,headers={'Content-Type':'application/json',**(headers or {})})
@@ -46,9 +58,13 @@ def start_model(folder):
     proc.terminate();raise RuntimeError('Local model initialization timed out')
 
 def infer(system,user,max_tokens=3600):
-    result=request('http://127.0.0.1:8098/v1/chat/completions',{'messages':[{'role':'system','content':system+' /no_think'},{'role':'user','content':user+' /no_think'}],'temperature':0.35,'max_tokens':max_tokens,'response_format':{'type':'json_object'}},timeout=720)
+    schema=ARTICLE_SCHEMA if max_tokens>1200 else CRITIC_SCHEMA
+    result=request('http://127.0.0.1:8098/v1/chat/completions',{'messages':[{'role':'system','content':system+' /no_think'},{'role':'user','content':user+' /no_think'}],'temperature':0.35,'max_tokens':max_tokens,'chat_template_kwargs':{'enable_thinking':False},'response_format':{'type':'json_object','schema':schema}},timeout=720)
     text=result['choices'][0]['message']['content'];text=re.sub(r'<think>[\s\S]*?</think>','',text).strip();text=re.sub(r'^```(?:json)?\s*|\s*```$','',text)
-    return json.loads(text),result.get('usage',{})
+    try:parsed=json.loads(text)
+    except json.JSONDecodeError:
+        parsed={'malformedOutput':text[:20000]} if max_tokens>1200 else {'approved':False,'unsupportedClaims':['Réponse du contrôleur incomplète.'],'reason':'Le contrôleur n’a pas produit un résultat exploitable.'}
+    return parsed,result.get('usage',{})
 
 def run():
     job=api('start');print('GrowthPilot status:',job['status'])
