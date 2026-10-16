@@ -1,9 +1,14 @@
 import fs from 'node:fs';
+import { createDecipheriv,createHash } from 'node:crypto';
 import { prisma } from '../lib/db';
 import { articleSchema } from '../lib/growthpilot/content';
 async function main(){
   const file=process.argv[2];if(!file)throw Error('Usage: tsx --env-file=.env.local scripts/growth-restore.ts backup.json [--apply]');
-  if(fs.statSync(file).size>20_000_000)throw Error('Sauvegarde trop volumineuse.');const data=JSON.parse(fs.readFileSync(file,'utf8'));
+  if(fs.statSync(file).size>20_000_000)throw Error('Sauvegarde trop volumineuse.');let data=JSON.parse(fs.readFileSync(file,'utf8'));
+  if(data.algorithm==='aes-256-gcm'){
+    const key=process.env.GROWTH_BACKUP_RECOVERY_KEY?Buffer.from(process.env.GROWTH_BACKUP_RECOVERY_KEY,'hex'):createHash('sha256').update(process.env.AUTH_SECRET||'').digest();
+    const decipher=createDecipheriv('aes-256-gcm',key,Buffer.from(data.iv,'base64'));decipher.setAuthTag(Buffer.from(data.tag,'base64'));data=JSON.parse(Buffer.concat([decipher.update(Buffer.from(data.ciphertext,'base64')),decipher.final()]).toString('utf8'));
+  }
   if(data.version!==1||!Array.isArray(data.articles)||!Array.isArray(data.opportunities))throw Error('Format de sauvegarde invalide.');
   console.log(`${data.opportunities.length} sujets, ${data.articles.length} contenus. Restauration en brouillon, automatisation suspendue.`);if(!process.argv.includes('--apply')){console.log('Simulation uniquement. Ajouter --apply pour restaurer.');return;}
   await prisma.$transaction(async tx=>{
