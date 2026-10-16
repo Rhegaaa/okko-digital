@@ -14,6 +14,8 @@ GitHub Actions → jeton OIDC éphémère → API worker limitée à GrowthPilot
 
 Le modèle Qwen3-4B-GGUF sous licence Apache-2.0 s'exécute sur le runner standard Ubuntu gratuit du dépôt public avec llama.cpp. Fichiers et binaires sont épinglés par révision et SHA-256. Il n'y a aucune API d'inférence facturée. GitHub Models n'est pas utilisé : sa documentation annonce son arrêt au 30 juillet 2026. Aucun service payant ni palier supérieur n'est activé. Une indisponibilité du modèle ou un changement de quota fait échouer le cycle ; aucun repli payant.
 
+La génération utilise les paramètres non-thinking recommandés par Qwen (température 0,7, top-p 0,8, top-k 20) et une pénalité de présence de 1,5 contre les répétitions. Un plan distinct par thème répartit les sources pertinentes entre les sections. Les sorties sont contraintes par un schéma JSON, puis recontrôlées côté serveur ; ces contraintes ne remplacent pas la vérification factuelle. La reprise réécrit depuis le brief et ses erreurs, sans recopier le texte refusé. Le plafond quotidien de reprise est de cinq tentatives ; les cycles terminés sont idempotents.
+
 Le lancement quotidien est demandé à 06:00 Europe/Paris, avec la propriété timezone GitHub Actions. Le service peut retarder un lancement ; l'heure exacte n'est pas garantie. Les contenus visent lundi, mercredi et vendredi avec un maximum de trois publications par semaine. L'absence d'activité d'un dépôt public pendant soixante jours peut désactiver sa planification GitHub : le dernier signal est affiché. Une sauvegarde éditoriale réelle est versionnée chaque semaine dans ce dépôt, ce qui maintient une activité utile. Si un échec prolongé empêche cette activité et que GitHub désactive le workflow, il faut le réactiver depuis Actions.
 
 ## Recherche, rédaction et contrôles
@@ -48,6 +50,7 @@ Trois guides hebdomadaires sont un objectif sous réserve de qualité et de disp
 - https://docs.github.com/en/billing/concepts/product-billing/github-actions
 - https://docs.github.com/en/github-models
 - https://huggingface.co/Qwen/Qwen3-4B-GGUF
+- https://huggingface.co/Qwen/Qwen3-4B
 - https://github.com/ggml-org/llama.cpp/releases/tag/b11696
 - https://developers.google.com/search/docs/fundamentals/using-gen-ai-content
 - https://developers.google.com/search/docs/essentials/spam-policies
