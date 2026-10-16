@@ -11,8 +11,8 @@ def array_schema(item,minimum=0,maximum=7):return {'type':'array','items':item,'
 def object_schema(properties):return {'type':'object','properties':properties,'required':list(properties),'additionalProperties':False}
 ARTICLE_SCHEMA=object_schema({
     'slug':{'type':'string','pattern':'^[a-z0-9]+(?:-[a-z0-9]+)*$','minLength':12,'maxLength':100},
-    'title':text_schema(25,85),'description':text_schema(90,180),'intro':text_schema(180,1200),
-    'sections':array_schema(object_schema({'heading':text_schema(10,140),'paragraphs':array_schema(text_schema(250,1500),2,3),'items':array_schema(text_schema(15,300),0,4),'sourceIds':array_schema({'type':'string','enum':['ranking','reviews','reply','hours','managers','photos']},1,3)}),4,5),
+    'title':text_schema(25,85),'description':text_schema(90,180),'intro':text_schema(300,1000),
+    'sections':array_schema(object_schema({'heading':text_schema(10,140),'paragraphs':array_schema(text_schema(400,1200),2,2),'items':array_schema(text_schema(15,300),0,4),'sourceIds':array_schema({'type':'string','enum':['ranking','reviews','reply','hours','managers','photos']},1,3)}),4,5),
     'faq':array_schema(object_schema({'question':text_schema(15,160),'answer':text_schema(80,500)}),0,2),
     'checklist':array_schema(text_schema(15,250),3,5),
     'futureTopics':array_schema(object_schema({'keyword':text_schema(20,120),'angle':text_schema(40,300)}),0,2),
@@ -57,7 +57,7 @@ def start_model(folder):
         except Exception:time.sleep(1)
     proc.terminate();raise RuntimeError('Local model initialization timed out')
 
-def infer(system,user,max_tokens=3600):
+def infer(system,user,max_tokens=4600):
     schema=ARTICLE_SCHEMA if max_tokens>1200 else CRITIC_SCHEMA
     result=request('http://127.0.0.1:8098/v1/chat/completions',{'messages':[{'role':'system','content':system+' /no_think'},{'role':'user','content':user+' /no_think'}],'temperature':0.35,'max_tokens':max_tokens,'chat_template_kwargs':{'enable_thinking':False},'response_format':{'type':'json_object','schema':schema}},timeout=720)
     text=result['choices'][0]['message']['content'];text=re.sub(r'<think>[\s\S]*?</think>','',text).strip();text=re.sub(r'^```(?:json)?\s*|\s*```$','',text)
