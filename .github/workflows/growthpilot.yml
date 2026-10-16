@@ -28,7 +28,7 @@ jobs:
         run: python3 scripts/growthpilot-runner.py
   backup:
     needs: daily
-    if: success() && github.repository == 'Rhegaaa/okko-digital' && github.event.repository.private == false
+    if: always() && !cancelled() && github.repository == 'Rhegaaa/okko-digital' && github.event.repository.private == false
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     permissions:
