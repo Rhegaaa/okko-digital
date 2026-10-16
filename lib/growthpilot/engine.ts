@@ -18,7 +18,7 @@ export async function existingTexts(){
 export async function startRun(owner:string,date=new Date()){
   await ensureGrowth();const state=await prisma.growthState.findUniqueOrThrow({where:{id:'okko'}});if(!state.enabled)return {status:'PAUSED'};
   const id=frenchDay(date);await prisma.growthRun.upsert({where:{id},update:{},create:{id}});
-  const run=await prisma.growthRun.findUniqueOrThrow({where:{id}});if(run.status==='COMPLETE')return {status:'DONE'};if(run.attempts>=3)return {status:'ATTEMPTS_EXHAUSTED'};
+  const run=await prisma.growthRun.findUniqueOrThrow({where:{id}});if(run.status==='COMPLETE')return {status:'DONE'};if(run.attempts>=5)return {status:'ATTEMPTS_EXHAUSTED'};
   const leased=await prisma.growthState.updateMany({where:{id:'okko',enabled:true,OR:[{leaseUntil:null},{leaseUntil:{lt:new Date()}},{leaseOwner:owner}]},data:{leaseOwner:owner,leaseUntil:new Date(Date.now()+25*60_000),lastHeartbeat:new Date()}});if(!leased.count)return {status:'BUSY'};
   await prisma.growthRun.update({where:{id},data:{status:'RUNNING',attempts:{increment:1},finishedAt:null}});
   await logRun(id,'Début du cycle : collecte de sources, contrôles et éventuelle publication.');
