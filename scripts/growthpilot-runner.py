@@ -33,7 +33,13 @@ def api(op,**kwargs):
     for attempt in range(3):
         try:return request(BASE+'/api/growthpilot/worker',{'op':op,**kwargs},{'Authorization':'Bearer '+token()})
         except urllib.error.HTTPError as e:
-            if e.code not in (429,500,502,503,504) or attempt==2:raise RuntimeError('Worker HTTP '+str(e.code))
+            if e.code not in (429,500,502,503,504) or attempt==2:
+                detail=''
+                try:
+                    message=json.loads(e.read(8000)).get('error','')
+                    if isinstance(message,str) and message.startswith(('Gemini','Quota gratuit','Génération','Cette génération','Automatisation','Version du moteur','Cycle')):detail=' : '+message[:500]
+                except (ValueError,AttributeError):pass
+                raise RuntimeError('Worker HTTP '+str(e.code)+detail)
         except (TimeoutError,urllib.error.URLError):
             if attempt==2:raise
         time.sleep(2**attempt*3)
