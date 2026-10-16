@@ -5,7 +5,7 @@ import { workerIdentity } from '@/lib/growthpilot/auth';
 import { startRun,saveGenerated,verifyArticle,checkBacklink,finishRun,assertLease } from '@/lib/growthpilot/engine';
 import { encryptedBackup } from '@/lib/growthpilot/backup';
 import { inferGemini } from '@/lib/growthpilot/gemini';
-export const maxDuration=60;
+export const maxDuration=120;
 const body=z.object({release:z.string().max(100).optional(),op:z.enum(['start','infer','content','verify','backlink','finish','backup']),id:z.string().max(100).optional(),phase:z.enum(['writer','review','repair','reviewRepair']).optional(),system:z.string().min(10).max(20000).optional(),user:z.string().min(10).max(50000).optional(),opportunityId:z.string().max(100).optional(),content:z.unknown().optional(),critic:z.unknown().optional(),usage:z.object({input:z.number().int().min(0).max(100000),output:z.number().int().min(0).max(30000)}).optional(),error:z.string().max(1000).optional()});
 export async function POST(req:Request){
   let owner:string;try{owner=await workerIdentity(req);}catch{return NextResponse.json({error:'Non autorisé'},{status:401});}

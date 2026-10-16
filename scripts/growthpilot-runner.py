@@ -31,7 +31,7 @@ def token():
 def api(op,**kwargs):
     # Each request gets a short-lived identity; no token is written to logs/artifacts.
     for attempt in range(3):
-        try:return request(BASE+'/api/growthpilot/worker',{'op':op,**kwargs},{'Authorization':'Bearer '+token()})
+        try:return request(BASE+'/api/growthpilot/worker',{'op':op,**kwargs},{'Authorization':'Bearer '+token()},timeout=min(125,max(10,DEADLINE-time.monotonic())) if op=='infer' else 60)
         except urllib.error.HTTPError as e:
             if e.code not in (429,500,502,503,504) or attempt==2:
                 detail=''
