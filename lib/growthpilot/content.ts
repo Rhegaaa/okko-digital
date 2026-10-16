@@ -30,6 +30,7 @@ export function quality(raw:unknown, existing:{title:string;text:string}[], avai
   if(a.sections.some(s=>s.sourceIds.some(id=>!availableIds.includes(id))))issues.push('Source absente ou non vérifiée.');
   if(new Set(a.sections.flatMap(s=>s.sourceIds)).size<2)issues.push('Au moins deux sources vérifiées sont nécessaires.');
   if(/<\/?[a-z!]|javascript:|https?:\/\//i.test(text))issues.push('HTML ou lien libre interdit dans le texte généré.');
+  if(/\d/.test(text))issues.push('Détail chiffré absent du corpus autorisé : supprimer les dimensions, quantités ou exigences numériques inventées, ainsi que les numéros de listes.');
   if(/\b\d+(?:[,.]\d+)?\s*(?:%|€|euros\b|clients\b|avis\b|jours\b|semaines\b|mois\b|h\b|heures\b)/i.test(text))issues.push('Statistique, prix ou délai chiffré non sourcé.');
   if(/nous garantissons|classement garanti|position garantie|premi[eè]re? (place|position) assur[eé]e|notre client|nos clients|t[eé]moignage|[àa] (Paris|Lyon|Marseille|Annecy)|plombier|ma[çc]on|couvreur|b[aâ]timent/i.test(text))issues.push('Promesse, témoignage, ciblage géographique ou BTP interdit.');
   if(existing.some(e=>similarity(text,e.text)>.30||normalize(a.title)===normalize(e.title)))issues.push('Doublon ou cannibalisation avec une page existante.');
